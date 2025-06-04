@@ -212,13 +212,13 @@ This document is intended to act as a single source of truth throughout the deve
 ## Authors
 
 👤 **Julien Pulon**  
-*Développeur Web & Web Mobile*  
-- GitHub: [@julienpulon](https://github.com/julienpulon)  
+*Développeur Full Stack Junior*  
+- GitHub: [@julienpulon](https://github.com/JulienPul)  
 - LinkedIn: [Julien Pulon](https://www.linkedin.com/in/julienpulon/)  
 
 👤 **Haggui Razafimaitso**  
 *Développeur Full Stack Junior*  
-- GitHub: [@haggui-rz](https://github.com/haggui-rz)  
+- GitHub: [@haggui-rz](https://github.com/hagguishell)  
 - LinkedIn: [Haggui Razafimaitso](https://www.linkedin.com/in/haggui-razafimaitso/)  
 
 ---
