@@ -27,7 +27,9 @@ The primary objectives of this document are:
 
 ## High-Level Architecture
 
-![High-Level Architecture Diagram](./part1/High-Level_Package_Diagram.png)
+<div align="center">
+    <img src="/part1/High-Level_Package_Diagram.png" width="500" height="800">
+</div>
 
 ### Diagram: High-Level Package Diagram
 
@@ -59,7 +61,9 @@ This diagram presents the macro-level view of the application’s layered archit
 ## Business Logic Layer
 
 ### Diagram: Class Diagram
-![High-Level Architecture Diagram](./part1/Class_Diagram_for_Business_Logic_Layer.png)
+<div align="center">
+    <img src="/part1/Class_Diagram_for_Business_Logic_Layer.png" width="500" height="800">
+</div>
 
 **Purpose**:  
 This diagram defines the core domain entities and their interrelationships, emphasizing data structure and logic encapsulation within the Business Layer.
@@ -94,7 +98,9 @@ This diagram defines the core domain entities and their interrelationships, emph
 
 ### Sequence Diagram 1: User Registration
 
-![High-Level Architecture Diagram](./part1/Sequence_Diagrams_User_Registration.png)
+<div align="center">
+    <img src="/part1/Sequence_Diagrams_User_Registration.png" width="500" height="800">
+</div>
 
 **Purpose**:  
 Demonstrates the process of creating a new user account through the API.
@@ -117,7 +123,9 @@ Demonstrates the process of creating a new user account through the API.
 
 ### Sequence Diagram 2: Place Creation
 
-![High-Level Architecture Diagram](./part1/Sequence_Diagrams_Place_Creation.png)
+<div align="center">
+    <img src="/part1/Sequence_Diagrams_Place_Creation.png" width="500" height="800">
+</div>
 
 **Purpose**:  
 Explains the flow for adding a new listing by an authenticated user.
@@ -140,7 +148,9 @@ Explains the flow for adding a new listing by an authenticated user.
 
 ### Sequence Diagram 3: Review Submission
 
-![High-Level Architecture Diagram](./part1/Sequence_Diagram_Review_Submission.png)
+<div align="center">
+    <img src="/part1/Sequence_Diagram_Review_Submission.png" width="500" height="800">
+</div>
 
 **Purpose**:  
 Covers how users leave feedback on a listing.
@@ -163,7 +173,9 @@ Covers how users leave feedback on a listing.
 
 ### Sequence Diagram 4: Fetching Places
 
-![High-Level Architecture Diagram](./part1/Sequence_Diagram_Rewiew_Fetching_a_List_of_Places.png)
+<div align="center">
+    <img src="/part1/Sequence_Diagram_Rewiew_Fetching_a_List_of_Places.png" width="500" height="800">
+</div>
 
 **Purpose**:  
 Describes how filtered listings are retrieved by city or criteria.
