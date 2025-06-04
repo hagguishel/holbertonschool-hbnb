@@ -27,11 +27,11 @@ The primary objectives of this document are:
 
 ## High-Level Architecture
 
+### Diagram: High-Level Package Diagram
+
 <div align="center">
     <img src="/part1/High-Level_Package_Diagram.png" width="500" height="800">
 </div>
-
-### Diagram: High-Level Package Diagram
 
 **Purpose**:  
 This diagram presents the macro-level view of the application’s layered architecture, following a **facade pattern** to ensure decoupling between layers.
@@ -61,6 +61,7 @@ This diagram presents the macro-level view of the application’s layered archit
 ## Business Logic Layer
 
 ### Diagram: Class Diagram
+
 <div align="center">
     <img src="/part1/Class_Diagram_for_Business_Logic_Layer.png" width="500" height="800">
 </div>
@@ -71,19 +72,20 @@ This diagram defines the core domain entities and their interrelationships, emph
 **Core Classes and Responsibilities**:
 
 - **User**
-  - Attributes: `id`, `email`, `hashed_password`, `is_admin`
-  - Methods: `register()`, `authenticate()`, `update_profile()`
+  - Attributes: `id`, `first_name`, `last_name` `email`, `password`, `is_admin`
+  - Methods: `get_full_name()`, `set_password()`, `set_email()`, `update_profile_information()`,`delete()`
 
 - **Place**
-  - Attributes: `id`, `name`, `city`, `owner_id`, `amenities`, `reviews`
-  - Methods: `create()`, `update()`, `delete()`
+  - Attributes: `id`, `title`, `description`, `price`, `latitude`, `longitude`
+  - Methods: `get_amenity_names()`, `add_amenity()`, `remove_amenity()`, `update_price()`, `delete()`
 
 - **Review**
-  - Attributes: `id`, `user_id`, `place_id`, `rating`, `comment`, `timestamp`
-  - Methods: `validate_rating()`, `to_dict()`
+  - Attributes: `id`, `user_id`, `place_id`, `rating`, `comment`, `created_at`, `updated_at`
+  - Methods: `set_rating()`, `set_comment()`, `delete()`
 
 - **Amenity**
-  - Attributes: `id`, `name`, `description`
+  - Attributes: `id`, `name`, `description`, `created_at`, `updated_at`
+  - - Methods: `update_name()`, `update_description()`, `set_update_at()`, `delete()`
   - Relationships: Many-to-Many with `Place`
 
 **Design Decisions**:
@@ -115,10 +117,10 @@ Demonstrates the process of creating a new user account through the API.
 6. A JWT token is generated and returned.
 
 **Error Scenarios**:
-
-- `400 Bad Request`: Missing or malformed input.
+- `400 Bad Request`: Missing or malformed input
+- `401 Unauthorized`: JWT missing or invalid.
 - `409 Conflict`: Email already registered.
-
+- `500 Internal Server Error`: Database query failed or unhandled exception.
 ---
 
 ### Sequence Diagram 2: Place Creation
@@ -141,8 +143,11 @@ Explains the flow for adding a new listing by an authenticated user.
 
 **Error Scenarios**:
 
+- `400 Bad Request`: Malformed request or missing required fields.
 - `401 Unauthorized`: JWT missing or invalid.
+- `404 User Not Found`: User or resource not found.
 - `422 Unprocessable Entity`: Input fails domain validation.
+- `500 Internal Server Error`: Unexpected server-side failure
 
 ---
 
@@ -166,8 +171,11 @@ Covers how users leave feedback on a listing.
 
 **Error Scenarios**:
 
-- `404 Not Found`: Place ID invalid.
-- `400 Bad Request`: Rating out of accepted range.
+- `404 Not Found`:  User or resource not found.
+- `400 Bad Request`: Malformed request or missing required fields.
+- `422 Unprocessable Entity`: Rating out of accepted range.
+- `500 Internal Server Error`: Unexpected server-side failure
+- `422 Unprocessable Entity`:Input is syntactically correct but fails domain validation.
 
 ---
 
@@ -190,8 +198,8 @@ Describes how filtered listings are retrieved by city or criteria.
 
 **Error Scenarios**:
 
-- `422 Unprocessable Entity`: Invalid query parameters.
-- `500 Internal Server Error`: Database access failure.
+- `400 Bad Request`: Malformed request or missing required fields.
+- `500 Internal Server Error`: Unexpected server-side failure (e.g., database unavailable).
 
 ---
 
