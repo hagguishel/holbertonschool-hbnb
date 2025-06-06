@@ -218,7 +218,7 @@ This document is intended to act as a single source of truth throughout the deve
 
 👤 **Haggui Razafimaitso**  
 *Développeur Full Stack Junior*  
-- GitHub: [@haggui-rz](https://github.com/hagguishell)  
+- GitHub: [@hagguishel](https://github.com/hagguishel)  
 - LinkedIn: [Haggui Razafimaitso](https://www.linkedin.com/in/haggui-razafimaitso/)  
 
 ---
