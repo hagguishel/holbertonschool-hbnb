@@ -2,7 +2,6 @@ from app.models.BaseModel import BaseModel
 from email_validator import validate_email, EmailNotValidError
 
 class User(BaseModel):
-    used_emails = set()
 
     def __init__(self, first_name, last_name, email, is_admin):
         super().__init__()
@@ -16,6 +15,10 @@ class User(BaseModel):
             raise ValueError("Invalid email format.")
         if email in User.used_emails:
             raise ValueError("Email already in use.")
+        if not self.is_admin_user():
+            raise PermissionError("Access denied. Admin privileges required.")
+
+
 
         self.first_name = first_name
         self.last_name = last_name
@@ -31,3 +34,7 @@ class User(BaseModel):
             return True
         except EmailNotValidError:
             return False
+
+
+    def is_admin_user(self):
+        return self.is_admin
