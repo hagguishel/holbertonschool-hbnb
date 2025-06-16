@@ -56,7 +56,7 @@ pip install -r requirements.txt
 
 ## 🚀 Run the Application
 
-python run.py
+python3 run.py
 
 Then open your browser at:  
 http://127.0.0.1:5000/api/v1/
