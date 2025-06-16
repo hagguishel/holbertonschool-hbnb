@@ -15,3 +15,6 @@ class BaseModel:
             if hasattr(self, key):
                 setattr(self, key, value)
         self.save()
+
+    def delete(self):
+        pass
