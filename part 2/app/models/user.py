@@ -1,4 +1,5 @@
 from app.models.BaseModel import BaseModel
+from email_validator import validate_email, EmailNotValidError
 
 class User(BaseModel):
     used_emails = set()
@@ -25,9 +26,8 @@ class User(BaseModel):
         User.used_emails.add(email)
 
     def _is_valid_email(self, email):
-        if "@" not in email:
+        try:
+            validate_email(email)
+            return True
+        except EmailNotValidError:
             return False
-        local, _, domain = email.partition("@")
-        if not local or not domain or "." not in domain:
-            return False
-        return True
