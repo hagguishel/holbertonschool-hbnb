@@ -68,7 +68,7 @@ class User(BaseModel):
         self.__is_admin = bool(value)
 
 
-
+    @property
     def is_admin_user(self):
         return self.__is_admin
     
@@ -78,12 +78,10 @@ class User(BaseModel):
     
     @password.setter
     def password(self, value):
-        # You should implement password validation and hashing here
+        if not value or len(value) < 6:
+            raise ValueError("Password must be at least 6 characters long.")
         self.__password = value
-
     
-
-
     def to_dict(self):
         return {
             "id": self.id,
