@@ -51,3 +51,15 @@ class Review(BaseModel):
             raise TypeError("Must be validated to ensure the user exists.")
         self._user = value
 
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "text": self.text,
+            "rating": self.rating,
+            "place_id": self.place.id,
+            "user_id": self.user.id,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+        return data
