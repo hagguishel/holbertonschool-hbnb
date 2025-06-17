@@ -27,6 +27,17 @@ class place(BaseModel):
         self.__title = value
 
     @property
+    def description(self):
+        return self.__description
+    
+    @description.setter
+    def description(self, value):
+        if not isinstance(value, str) or len(value) > 500:
+            raise ValueError("description must be a string with max 500 characters.")
+        self.__description = value
+    
+
+    @property
     def price(self):
         return self.__price
     
