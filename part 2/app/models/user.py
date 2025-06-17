@@ -38,3 +38,13 @@ class User(BaseModel):
 
     def is_admin_user(self):
         return self.is_admin
+
+    def to_dict(self):
+        return{
+        "id": self.id,
+        "first_name": self.first_name,
+        "last_name": self.last_name,
+        "email": self.email,
+        "is_admin": self.is_admin_user,
+        "created_at": self.created_at.isoformat(),
+        "updated_at": self.updated_at.isoformat()}
