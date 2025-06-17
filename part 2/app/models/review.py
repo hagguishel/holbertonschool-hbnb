@@ -6,20 +6,48 @@ class Review(BaseModel):
     def __init__(self, text, rating, place, user):
         super().__init__()
 
-        if not isinstance(text, str) or not text.strip():
+        self._text = text
+        self._rating = rating
+        self._place = place
+        self._user = user
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        if not isinstance(value, str) or not value.strip():
             raise ValueError("text is required and must be a non-empty string")
+        self._text = value
 
-        if not isinstance(rating, int) or not (1 <= rating <= 5):
+    @property
+    def rating(self):
+        return  self._rating
+
+    @rating.setter
+    def rating(self, value):
+        if not isinstance(value, int) or not (1 <= value <= 5):
             raise ValueError("rating must be an integer between 1 and 5")
+        self._rating = value
 
-        if not isinstance(place, Place):
+    @property
+    def place(self):
+        return self._place
+
+    @place.setter
+    def place(self, value):
+        if not isinstance(value, Place):
             raise TypeError("Must be validated to ensure the place exists")
+        self._place = value
 
-        if not isinstance(user, User):
+    @property
+    def user(self):
+        return self._user
+
+    @user.setter
+    def user(self, value):
+        if not isinstance(value, User):
             raise TypeError("Must be validated to ensure the user exists.")
-
-        self.text = text
-        self.rating = rating
-        self.place = place
-        self.user = user
+        self._user = value
 
