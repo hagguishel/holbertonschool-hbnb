@@ -1,14 +1,15 @@
 from app.models.BaseModel import BaseModel
 
+
 class Amenity(BaseModel):
     def __init__(self, name):
         super().__init__()
 
-        self._name = name
+        self.name = name
 
     @property
     def name(self):
-        return self._name
+        return self.__name
 
     @name.setter
     def name(self, value):
@@ -17,14 +18,14 @@ class Amenity(BaseModel):
         if len(value) > 50:
             raise ValueError("Required, maximum length of 50 characters.")
 
-        self._name = value
+        self.__name = value
 
     def to_dict(self):
         data = {
             "id": self.id,
             "name": self.name,
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "updated_at": self.updated_at.isoformat(),
         }
 
         return data
