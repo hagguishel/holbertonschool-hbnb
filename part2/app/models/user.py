@@ -1,19 +1,18 @@
 #!/usr/bin/python3
 
-from BaseModel import BaseModel
+from models.BaseModel import BaseModel
 from email_validator import validate_email, EmailNotValidError
 
 class User(BaseModel):
     used_emails = set()
 
-    def __init__(self, first_name, last_name, email, password, is_admin):
+    def __init__(self, first_name, last_name, email, is_admin=False):
         super().__init__()
 
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.is_admin = bool(is_admin)
-        self.password = password
 
         User.used_emails.add(self.email)
 
@@ -51,10 +50,12 @@ class User(BaseModel):
 
     def _is_valid_email(self, email):
         try:
-            validate_email(email)
+            validate_email(email, check_deliverability=False)
             return True
-        except EmailNotValidError:
+        except EmailNotValidError as e:
+            print(f"Email validation error: {e}")
             return False
+
         
     @property
     def is_admin(self):
@@ -69,22 +70,11 @@ class User(BaseModel):
     def is_admin_user(self):
         return self.__is_admin
     
-    @property
-    def password(self):
-        return self.__password
-    
-    @password.setter
-    def password(self, value):
-        if not value or len(value) < 6:
-            raise ValueError("Password must be at least 6 characters long.")
-        self.__password = value
-    
+   
     def to_dict(self):
         return {
             "id": self.id,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "email": self.email,
-            "password": self.password,
-            "is_admin": self.is_admin
+            "email": self.email
         }

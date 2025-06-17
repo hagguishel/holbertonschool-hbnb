@@ -1,8 +1,7 @@
+#!/usr/bin/python3
 from app.models.BaseModel import BaseModel
-from app.models.user import User
-from app.models.review import Review
 
-class place(BaseModel):
+class Place(BaseModel):
     def __init__(self, title, description, price, latitude, longitude, owner):
         super().__init__()
         
@@ -22,9 +21,10 @@ class place(BaseModel):
     
     @title.setter
     def title(self, value):
-        if not hasattr(self, '_place__title') or not self.__title or not isinstance(self.__title, str) or len(self.__title) > 100:
+        if not value or not isinstance(value, str) or len(value) > 100:
             raise ValueError("title is required and must be a string with max 100 characters.")
         self.__title = value
+
 
     @property
     def description(self):
@@ -73,6 +73,7 @@ class place(BaseModel):
     
     @owner.setter
     def owner(self, value):
+        from models.user import User
         if not isinstance(value, User):
             raise ValueError("owner must be a valid User instance.")
         self.__owner = value
