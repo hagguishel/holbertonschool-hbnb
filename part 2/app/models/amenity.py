@@ -4,7 +4,6 @@ class Amenity(BaseModel):
     def __init__(self, name):
         super().__init__()
 
-
         self._name = name
 
     @property
@@ -20,8 +19,6 @@ class Amenity(BaseModel):
 
         self._name = value
 
-
-
     def to_dict(self):
         data = {
             "id": self.id,
@@ -31,4 +28,3 @@ class Amenity(BaseModel):
         }
 
         return data
-
