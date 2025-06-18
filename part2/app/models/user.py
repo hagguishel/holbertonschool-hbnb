@@ -3,6 +3,7 @@
 from app.models.basemodel import BaseModel
 from email_validator import validate_email, EmailNotValidError
 
+
 class User(BaseModel):
     used_emails = set()
 
@@ -56,7 +57,6 @@ class User(BaseModel):
             print(f"Email validation error: {e}")
             return False
 
-        
     @property
     def is_admin(self):
         return self.__is_admin
@@ -65,16 +65,14 @@ class User(BaseModel):
     def is_admin(self, value):
         self.__is_admin = bool(value)
 
-
     @property
     def is_admin_user(self):
         return self.__is_admin
-    
-   
+
     def to_dict(self):
         return {
             "id": self.id,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "email": self.email
+            "email": self.email,
         }

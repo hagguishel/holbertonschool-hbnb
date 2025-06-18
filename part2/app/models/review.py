@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-
 from app.models.basemodel import BaseModel
-from app.models.place import Place
 from app.models.user import User
 
 
@@ -40,6 +38,8 @@ class Review(BaseModel):
 
     @place.setter
     def place(self, value):
+        from app.models.place import Place
+
         if not isinstance(value, Place):
             raise TypeError("Must be validated to ensure the place exists")
         self.__place = value
