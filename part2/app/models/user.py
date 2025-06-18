@@ -43,8 +43,10 @@ class User(BaseModel):
 
     @email.setter
     def email(self, value):
-        if not self._is_valid_email(value):
-            raise ValueError("Invalid email format.")
+        try:
+            validate_email(value, check_deliverability=False)
+        except EmailNotValidError as e:
+            raise ValueError(f"Invalid email: {str(e)}")
         if value in User.used_emails:
             raise ValueError("Email already in use.")
         self.__email = value
