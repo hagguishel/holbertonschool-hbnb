@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from models.BaseModel import BaseModel
+from app.models.basemodel import BaseModel
 from email_validator import validate_email, EmailNotValidError
 
 class User(BaseModel):
