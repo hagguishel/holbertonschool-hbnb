@@ -28,8 +28,15 @@ class AmenityList(Resource):
     @api.response(200, 'List of amenities retrieved successfully')
     def get(self):
         """Retrieve a list of all amenities"""
-        # Placeholder for logic to return a list of all amenities
-        pass
+        """Retrieve all users"""
+        amenities = facade.get_all_amenities()
+        return [
+            {
+                "id": a.id,
+                "name": a.name
+            }
+            for a in amenities
+        ], 200
 
 @api.route('/<amenity_id>')
 class AmenityResource(Resource):
@@ -37,8 +44,13 @@ class AmenityResource(Resource):
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):
         """Get amenity details by ID"""
-        # Placeholder for the logic to retrieve an amenity by ID
-        pass
+        amenity = facade.get_amenity(amenity_id)
+        if not amenity:
+            return {"error": "amenity not found"}, 404
+        return {
+            "id": amenity.id,
+            "name": amenity.name
+        }, 200
 
     @api.expect(amenity_model)
     @api.response(200, 'Amenity updated successfully')
@@ -46,5 +58,13 @@ class AmenityResource(Resource):
     @api.response(400, 'Invalid input data')
     def put(self, amenity_id):
         """Update an amenity's information"""
-        # Placeholder for the logic to update an amenity by ID
-        pass
+        amenity = facade.get_amenity(amenity_id)
+        if not amenity:
+            return {"error": "Amenity not found"}, 404
+
+        updated_amenity = facade.update_amenity(amenity_id, api.payload)
+        return {
+            "id": updated_amenity.id,
+            "name": updated_amenity.name,
+        }, 200
+    
