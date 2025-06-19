@@ -3,6 +3,7 @@ from app.persistence.repository import InMemoryRepository
 from app.models.user import User
 from app.models.amenity import Amenity
 from app.models.place import Place
+from app.models.review import Review
 
 
 class HBnBFacade:
@@ -145,3 +146,86 @@ class HBnBFacade:
 
         self.place_repo.update(place_id, place_data)
         return self.place_repo.get(place_id)
+
+    def create_review(self, review_data):
+        user = self.user_repo.get(review_data["user_id"])
+        place = self.place_repo.get(review_data["place_id"])
+        if not user or not place:
+            raise ValueError("User or Place not found")
+
+        text = review_data.get("text")
+        if not text or not isinstance(text, str):
+            raise ValueError("Review text must be a non-empty string")
+
+        rating = review_data.get("rating")
+        if not isinstance(rating, int) or not (1 <= rating <= 5):
+            raise ValueError("Rating must be an integer between 1 and 5")
+
+        review = Review(text=text, rating=rating, user=user, place=place)
+        self.review_repo.add(review)
+        return review
+
+    def get_review(self, review_id):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+        return {
+            "id": review.id,
+            "text": review.text,
+            "rating": review.rating,
+            "user_id": review.user.id,
+            "place_id": review.place.id,
+        }
+
+    def get_all_reviews(self):
+        reviews = self.review_repo.get_all()
+        result = []
+        for review in reviews:
+            result.append(
+                {
+                    "id": review.id,
+                    "text": review.text,
+                    "rating": review.rating,
+                    "user_id": review.user.id,
+                    "place_id": review.place.id,
+                }
+            )
+        return result
+
+    def get_reviews_by_place(self, place_id):
+        reviews = self.review_repo.get_all()
+        result = []
+        for review in reviews:
+            if review.place.id == place_id:
+                result.append(
+                    {
+                        "id": review.id,
+                        "text": review.text,
+                        "rating": review.rating,
+                        "user_id": review.user.id,
+                        "place_id": review.place.id,
+                    }
+                )
+        return result
+
+    def update_review(self, review_id, review_data):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+
+        text = review_data.get("text")
+        if text is not None:
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError("Text must be a non-empty string")
+
+        rating = review_data.get("rating")
+        if rating is not None:
+            if not isinstance(rating, int) or not (1 <= rating <= 5):
+                raise ValueError("Rating must be an integer between 1 and 5")
+
+    def delete_review(self, review_id):
+        review = self.review_repo.get(review_id)
+        if not review:
+            return False
+        self.review_repo.delete(review_id)
+        return True
