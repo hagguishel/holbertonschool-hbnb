@@ -44,6 +44,9 @@ class HBnBFacade:
     def get_all_amenities(self):
         return self.amenity_repo.get_all()
 
+    def get_amenity_by_name(self, name):
+        return self.amenity_repo.get_by_attribute("name", name)
+
     def update_amenity(self, amenity_id, amenity_data):
         amenity = self.get_amenity(amenity_id)
         if not amenity:
