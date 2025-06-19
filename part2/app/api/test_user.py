@@ -60,18 +60,26 @@ def test_place_empty_title():
 # Tests pour Review
 # -----------------------
 def test_valid_review_creation():
-    review = Review("Très bien", "123", "456")
+    user = User("Julien", "Pulon", "reviewer@example.com")
+    place = Place("Nice view", "balcony", 120.0, 48.0, 2.0, user)
+    review = Review("Très bien", 4, place, user)
     assert review.text == "Très bien"
-    assert review.user_id == "123"
-    assert review.place_id == "456"
+    assert review.user == user
+    assert review.place == place
+
 
 def test_review_missing_fields():
+    user = User("Julien", "Pulon", "missing@example.com")
+    place = Place("Spot", "desc", 50.0, 45.0, 3.0, user)
+
     with pytest.raises(ValueError):
-        Review("", "123", "456")
-    with pytest.raises(ValueError):
-        Review("Parfait", "", "456")
-    with pytest.raises(ValueError):
-        Review("Parfait", "123", "")
+        Review("", 3, user, place)
+
+    with pytest.raises(TypeError):
+        Review("Parfait", 4, user, "not_a_place")
+
+    with pytest.raises(TypeError):
+        Review("Parfait", 4, None, place)
 
 # -----------------------
 # Tests pour Amenity

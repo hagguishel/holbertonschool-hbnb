@@ -6,11 +6,12 @@ from app.models.user import User
 class Review(BaseModel):
     def __init__(self, text, rating, place, user):
         super().__init__()
-
+        if not text:
+            raise ValueError("Text cannot be empty")
         self.text = text
         self.rating = rating
-        self.place = place
         self.user = user
+        self.place = place
 
     @property
     def text(self):
