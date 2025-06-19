@@ -217,11 +217,15 @@ class HBnBFacade:
         if text is not None:
             if not isinstance(text, str) or not text.strip():
                 raise ValueError("Text must be a non-empty string")
+            review.text = text
 
         rating = review_data.get("rating")
         if rating is not None:
             if not isinstance(rating, int) or not (1 <= rating <= 5):
                 raise ValueError("Rating must be an integer between 1 and 5")
+            review.rating = rating
+
+        return review
 
     def delete_review(self, review_id):
         review = self.review_repo.get(review_id)
