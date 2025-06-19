@@ -55,9 +55,10 @@ class PlaceList(Resource):
 
     @api.response(200, "List of places retrieved successfully")
     def get(self):
-        """Retrieve a list of all places"""
-        # Placeholder for logic to return a list of all places
-        pass
+        place = facade.get_all_places()
+        if not place:
+            return {"error": "Place not found"}, 404
+        return place, 200
 
 
 @api.route("/<place_id>")
@@ -66,14 +67,19 @@ class PlaceResource(Resource):
     @api.response(404, "Place not found")
     def get(self, place_id):
         """Get place details by ID"""
-        # Placeholder for the logic to retrieve a place by ID, including associated owner and amenities
-        pass
+        place = facade.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+        return place, 200
 
     @api.expect(place_model)
     @api.response(200, "Place updated successfully")
     @api.response(404, "Place not found")
     @api.response(400, "Invalid input data")
     def put(self, place_id):
-        """Update a place's information"""
-        # Placeholder for the logic to update a place by ID
-        pass
+        payload = api.payload
+        updated_place = facade.update_place(place_id, payload)
+
+        if not updated_place:
+            return {"error": "Invalid input or place not found"}, 400
+        return updated_place.to_dict(), 200
