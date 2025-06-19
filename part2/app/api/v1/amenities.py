@@ -64,7 +64,6 @@ class AmenityResource(Resource):
 
         updated_amenity = facade.update_amenity(amenity_id, api.payload)
         return {
-            "id": updated_amenity.id,
-            "name": updated_amenity.name,
+            "message": "Amenity updated successfully"
         }, 200
     
