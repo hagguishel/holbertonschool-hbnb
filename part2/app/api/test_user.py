@@ -83,6 +83,33 @@ def test_create_user_invalid_email(client):
     )
     assert res.status_code == 400
 
+def test_delete_review_success(client):
+    # Créer un user + un place
+    user = client.post("/api/v1/users/", json={
+        "first_name": "Test",
+        "last_name": "User",
+        "email": "delete@review.com"
+    }).json
+    place = client.post("/api/v1/places/", json={
+        "title": "Test Place",
+        "description": "test",
+        "price": 100.0,
+        "latitude": 45.0,
+        "longitude": 3.0,
+        "owner_id": user["id"]
+    }).json
+    # Créer une review
+    review = client.post("/api/v1/reviews/", json={
+        "text": "Super endroit",
+        "rating": 5,
+        "user_id": user["id"],
+        "place_id": place["id"]
+    }).json
+
+    # Supprimer la review
+    res = client.delete(f"/api/v1/reviews/{review['id']}")
+    assert res.status_code == 200
+
 
 # -----------------------
 # Tests User (modèle)
