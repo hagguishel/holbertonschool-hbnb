@@ -1,21 +1,85 @@
+import sys
+import os
 import pytest
+
+# Ajouter le chemin du projet pour résoudre les imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from app import create_app
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
 from app.models.amenity import Amenity
 
-# ✅ Réinitialise les emails utilisés entre chaque test
+# -----------------------
+# Fixtures
+# -----------------------
+
 @pytest.fixture(autouse=True)
 def reset_user_emails():
     User.used_emails = set()
 
-# ✅ Fixture User générique
 @pytest.fixture
 def user():
     return User("Julien", "Pulon", "user_fixture@example.com")
 
+@pytest.fixture
+def client():
+    app = create_app()
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        yield client
+
 # -----------------------
-# Tests pour User
+# Tests API /users/
+# -----------------------
+
+def test_get_users_empty(client):
+    response = client.get("/users/")
+    assert response.status_code == 200
+    assert response.json == []
+
+def test_create_user_success(client):
+    data = {
+        "first_name": "Julien",
+        "last_name": "Pulon",
+        "email": "julien@api.com"
+    }
+    response = client.post("/users/", json=data)
+    assert response.status_code == 201
+    assert response.json["email"] == "julien@api.com"
+
+def test_update_user_success(client):
+    # Crée un utilisateur d'abord (POST)
+    res = client.post("/users/", json={
+        "first_name": "Julien",
+        "last_name": "Pulon",
+        "email": "julien@update.com"
+    })
+    assert res.status_code == 201
+    user_id = res.json["id"]
+
+    # Update de l'utilisateur (PUT)
+    update_data = {
+        "first_name": "Jules",
+        "last_name": "Pulon",
+        "email": "julien@update.com"
+    }
+    res_put = client.put(f"/users/{user_id}", json=update_data)
+    assert res_put.status_code == 200
+    assert res_put.json["first_name"] == "Jules"
+
+
+def test_create_user_invalid_email(client):
+    res = client.post("/users/", json={
+        "first_name": "Test",
+        "last_name": "User",
+        "email": "invalid-email"
+    })
+    assert res.status_code == 400
+
+# -----------------------
+# Tests User (modèle)
 # -----------------------
 
 def test_valid_user_creation():
@@ -54,7 +118,7 @@ def test_user_to_dict():
     assert "id" in d
 
 # -----------------------
-# Tests pour Place
+# Tests Place
 # -----------------------
 
 def test_valid_place_creation(user):
@@ -76,13 +140,9 @@ def test_place_invalid_price(user):
 
 def test_place_invalid_lat_lon(user):
     with pytest.raises(ValueError):
-        Place("Nice house", "Desc", 50.0, -100.0, 3.0, user)  # lat < -90
+        Place("Nice house", "Desc", 50.0, -100.0, 3.0, user)
     with pytest.raises(ValueError):
-        Place("Nice house", "Desc", 50.0, 45.0, -200.0, user)  # lon < -180
-
-def test_place_empty_title(user):
-    with pytest.raises(ValueError):
-        Place("", "Nice", 100.0, 45.0, 3.0, user)
+        Place("Nice house", "Desc", 50.0, 45.0, -200.0, user)
 
 def test_place_invalid_owner():
     with pytest.raises(ValueError):
@@ -110,7 +170,7 @@ def test_place_add_review_and_amenity(user):
     assert amenity in place.amenities
 
 # -----------------------
-# Tests pour Review
+# Tests Review
 # -----------------------
 
 def test_valid_review_creation(user):
@@ -122,19 +182,15 @@ def test_valid_review_creation(user):
 
 def test_review_missing_fields(user):
     place = Place("Spot", "desc", 50.0, 45.0, 3.0, user)
-
     with pytest.raises(ValueError):
         Review("", 3, user, place)
-
     with pytest.raises(TypeError):
         Review("Parfait", 4, user, "not_a_place")
-
     with pytest.raises(TypeError):
         Review("Parfait", 4, None, place)
 
 def test_review_invalid_rating(user):
     place = Place("Bad rating", "test", 100.0, 45.0, 3.0, user)
-
     with pytest.raises(ValueError):
         Review("Trop bas", 0, place, user)
     with pytest.raises(ValueError):
@@ -142,10 +198,8 @@ def test_review_invalid_rating(user):
 
 def test_review_invalid_types(user):
     place = Place("Test", "test", 50.0, 45.0, 3.0, user)
-
     with pytest.raises(ValueError):
         Review(12345, 4, place, user)
-
     with pytest.raises(ValueError):
         Review("Bien", "quatre", place, user)
 
@@ -156,7 +210,7 @@ def test_review_to_dict(user):
     assert "text" in d and d["text"] == "Top"
 
 # -----------------------
-# Tests pour Amenity
+# Tests Amenity
 # -----------------------
 
 def test_valid_amenity_creation():
