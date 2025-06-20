@@ -143,6 +143,62 @@ def test_get_amenity_not_found(client):
     response = client.get("/api/v1/amenities/invalid-id")
     assert response.status_code == 404
 
+def test_create_place_success(client):
+    user = client.post("/api/v1/users/", json={
+        "first_name": "Owner",
+        "last_name": "Test",
+        "email": "owner@test.com"
+    }).json
+    res = client.post("/api/v1/places/", json={
+        "title": "Cabane",
+        "description": "Petite cabane en bois",
+        "price": 100.0,
+        "latitude": 45.0,
+        "longitude": 2.0,
+        "owner_id": user["id"]
+    })
+    assert res.status_code == 201
+    assert res.json["title"] == "Cabane"
+
+def test_create_place_invalid_price(client):
+    user = client.post("/api/v1/users/", json={
+        "first_name": "Owner",
+        "last_name": "Test",
+        "email": "invalid@price.com"
+    }).json
+    res = client.post("/api/v1/places/", json={
+        "title": "Trop cher",
+        "description": "Maison",
+        "price": -10,
+        "latitude": 45.0,
+        "longitude": 2.0,
+        "owner_id": user["id"]
+    })
+    assert res.status_code == 400
+
+def test_get_place_by_id_success(client):
+    user = client.post("/api/v1/users/", json={
+        "first_name": "Owner",
+        "last_name": "Test",
+        "email": "find@me.com"
+    }).json
+    place = client.post("/api/v1/places/", json={
+        "title": "À retrouver",
+        "description": "Superbe maison",
+        "price": 120,
+        "latitude": 45,
+        "longitude": 1,
+        "owner_id": user["id"]
+    }).json
+    res = client.get(f"/api/v1/places/{place['id']}")
+    assert res.status_code == 200
+    assert res.json["title"] == "À retrouver"
+
+def test_get_place_by_id_not_found(client):
+    res = client.get("/api/v1/places/invalid-id")
+    assert res.status_code == 404
+
+
 # -----------------------
 # Tests User (modèle)
 # -----------------------
