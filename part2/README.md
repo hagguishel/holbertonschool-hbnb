@@ -38,6 +38,17 @@ hbnb/
 
 ---
 
+## 📬 Endpoints Overview
+
+| Resource  | Endpoint                  | Methods       | Description                    |
+|-----------|---------------------------|---------------|--------------------------------|
+| Users     | `/api/v1/users/`          | GET, POST     | List or create users           |
+| Users     | `/api/v1/users/<id>`      | GET, PUT      | Retrieve or update a user      |
+| Places    | `/api/v1/places/`         | GET, POST     | List or create places          |
+| Reviews   | `/api/v1/reviews/`        | GET, POST     | List or create reviews         |
+| Reviews   | `/api/v1/reviews/<id>`    | GET, DELETE   | Retrieve or delete a review    |
+| Amenities | `/api/v1/amenities/`      | GET, POST     | List or create amenities       |
+
 ## ✅ Features
 
 - Flask-based REST API with clean modular structure
