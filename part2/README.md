@@ -167,7 +167,7 @@ place.add_amenity(wifi)
 ```bash
 pytest
 ```
-
+Complete pytest test file  for api and models at part2/app/api/test_user.py
 Make sure `run.py` and `create_app()` are correctly configured to accept the in-memory repository.
 
 ### Manual Tests with cURL
