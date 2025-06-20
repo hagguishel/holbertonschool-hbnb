@@ -110,6 +110,38 @@ def test_delete_review_success(client):
     res = client.delete(f"/api/v1/reviews/{review['id']}")
     assert res.status_code == 200
 
+# -----------------------
+# Tests API /api/v1/amenities/
+# -----------------------
+
+def test_get_amenities_empty(client):
+    response = client.get("/api/v1/amenities/")
+    assert response.status_code == 200
+    assert response.json == []
+
+def test_create_amenity_success(client):
+    data = {"name": "Jacuzzi"}
+    response = client.post("/api/v1/amenities/", json=data)
+    assert response.status_code == 201
+    assert response.json["name"] == "Jacuzzi"
+
+def test_create_amenity_empty_name(client):
+    response = client.post("/api/v1/amenities/", json={"name": ""})
+    assert response.status_code == 400
+
+def test_get_amenity_by_id(client):
+    # Crée d'abord une amenity
+    amenity = client.post("/api/v1/amenities/", json={"name": "WiFi"}).json
+    amenity_id = amenity["id"]
+
+    # Récupère l'amenity via GET
+    res = client.get(f"/api/v1/amenities/{amenity_id}")
+    assert res.status_code == 200
+    assert res.json["name"] == "WiFi"
+
+def test_get_amenity_not_found(client):
+    response = client.get("/api/v1/amenities/invalid-id")
+    assert response.status_code == 404
 
 # -----------------------
 # Tests User (modèle)
