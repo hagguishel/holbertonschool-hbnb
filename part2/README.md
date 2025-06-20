@@ -75,7 +75,7 @@ pip install -r requirements.txt
 ## 🚀 Running the App
 
 ```bash
-python run.py
+python3 run.py
 ```
 
 Then open your browser at:  
