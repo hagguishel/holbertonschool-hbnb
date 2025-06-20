@@ -10,6 +10,7 @@ class User(BaseModel):
     def __init__(self, first_name, last_name, email, is_admin=False):
         super().__init__()
 
+        self.__email = None
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -43,12 +44,16 @@ class User(BaseModel):
 
     @email.setter
     def email(self, value):
-        try:
-            validate_email(value, check_deliverability=False)
-        except EmailNotValidError as e:
-            raise ValueError(f"Invalid email: {str(e)}")
-        if value in User.used_emails:
-            raise ValueError("Email already in use.")
+        if not self._is_valid_email(value):
+            raise ValueError("Invalid email.")
+
+        if value != self.__email:
+            if value in User.used_emails:
+                raise ValueError("Email already in use.")
+            if self.__email:
+                User.used_emails.discard(self.__email)
+            User.used_emails.add(value)
+
         self.__email = value
 
     def _is_valid_email(self, email):
