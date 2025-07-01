@@ -1,0 +1,29 @@
+# Fichiers Python inutiles
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+.env/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs, dumps, etc.
+*.log
+*.sqlite3
+
+# VS Code
+.vscode/
+
+# Compilations
+build/
+dist/
+*.egg-info/
+
+# Cache pip
+pip-wheel-metadata/
