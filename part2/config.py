@@ -5,7 +5,8 @@ class Config:
     DEBUG = False
 
 class DevelopmentConfig(Config):
-    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://<user>:<password>@localhost/<db_name>" 
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://<user>:<password>@localhost/<db_name>"
 
 config = {
     'development': DevelopmentConfig,
