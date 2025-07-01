@@ -5,9 +5,7 @@ class Config:
     DEBUG = False
 
 class DevelopmentConfig(Config):
-    SQLALCHEMY_DATABASE_URI = "sqlite:///hbnb.db"  # ou ton URI MySQL si tu préfères
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = "mysql+mysqldb://<user>:<password>@localhost/<db_name>" 
 
 config = {
     'development': DevelopmentConfig,
