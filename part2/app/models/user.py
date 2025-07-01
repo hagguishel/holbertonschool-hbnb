@@ -4,7 +4,7 @@ import re
 class User(BaseModel):
     emails = set()
 
-    def __init__(self, first_name, last_name, email, is_admin=False):
+    def __init__(self, first_name, last_name, email, is_admin=False, password=None):
         super().__init__()
         self.first_name = first_name
         self.last_name = last_name
@@ -12,11 +12,23 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.places = []
         self.reviews = []
-    
+        if password:
+            self.hash_password(password)
+        else:
+            self.__password = None
+
+    def hash_password(self, password):
+        from app import bcrypt
+        self.__password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def verify_password(self, __password):
+        from app import bcrypt
+        return bcrypt.check_password_hash(self.__password, __password)
+
     @property
     def first_name(self):
         return self.__first_name
-    
+
     @first_name.setter
     def first_name(self, value):
         if not isinstance(value, str):
@@ -55,7 +67,7 @@ class User(BaseModel):
     @property
     def is_admin(self):
         return self.__is_admin
-    
+
     @is_admin.setter
     def is_admin(self, value):
         if not isinstance(value, bool):
