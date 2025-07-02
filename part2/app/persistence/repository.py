@@ -1,4 +1,9 @@
 from abc import ABC, abstractmethod
+from app.models.user import User
+from app.models.place import Place
+from app.models.review import Review
+from app.models.amenity import Amenity
+
 
 class Repository(ABC):
     @abstractmethod
@@ -51,14 +56,12 @@ class InMemoryRepository(Repository):
     def get_by_attribute(self, attr_name, attr_value):
         return next((obj for obj in self._storage.values() if getattr(obj, attr_name) == attr_value), None)
 
-from app import db  # Assuming you have set up SQLAlchemy in your Flask app
-from app.models import User, Place, Review, Amenity  # Import your models
-
 class SQLAlchemyRepository(Repository):
     def __init__(self, model):
         self.model = model
 
     def add(self, obj):
+        from app import db
         db.session.add(obj)
         db.session.commit()
 
@@ -69,6 +72,7 @@ class SQLAlchemyRepository(Repository):
         return self.model.query.all()
 
     def update(self, obj_id, data):
+        from app import db
         obj = self.get(obj_id)
         if obj:
             for key, value in data.items():
@@ -76,6 +80,7 @@ class SQLAlchemyRepository(Repository):
             db.session.commit()
 
     def delete(self, obj_id):
+        from app import db
         obj = self.get(obj_id)
         if obj:
             db.session.delete(obj)
