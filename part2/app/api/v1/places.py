@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 api = Namespace('places', description='Place operations')
 
@@ -30,19 +31,21 @@ place_model = api.model('Place', {
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
+
     def post(self):
         """Register a new place"""
+        user = get_jwt_identity()
         place_data = api.payload
-        owner = place_data.get('owner_id', None)
-
-        if owner is None or len(owner) == 0:
+        if user is None or 'id' not in user:
             return {'error': 'Invalid input data.'}, 400
+        place_data['owner_id'] = user['id']
 
-        user = facade.user_repo.get_by_attribute('id', owner)
-        if not user:
+        db_user = facade.user_repo.get_by_attribute('id', user['id'])
+        if not db_user:
             return {'error': 'Invalid input data'}, 400
         try:
             new_place = facade.create_place(place_data)
@@ -71,14 +74,23 @@ class PlaceResource(Resource):
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
+    @jwt_required()
+
     def put(self, place_id):
         """Update a place's information"""
-        place_data = api.payload
+        user = get_jwt_identity()
         place = facade.get_place(place_id)
+        
         if not place:
             return {'error': 'Place not found'}, 404
+
+        if place.owner_id != user['id']:
+            return {'error': 'Unauthorized: You are not the owner of this place'}, 403
+
+        place_data = api.payload
+
         try:
-            facade.update_place(place_id, place_data)
+            updated_place = facade.update_place(place_id, place_data)
             return {'message': 'Place updated successfully'}, 200
         except Exception as e:
             return {'error': str(e)}, 400
@@ -89,6 +101,7 @@ class PlaceAmenities(Resource):
     @api.response(200, 'Amenities added successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
+
     def post(self, place_id):
         amenities_data = api.payload
         if not amenities_data or len(amenities_data) == 0:
@@ -111,6 +124,7 @@ class PlaceAmenities(Resource):
 class PlaceReviewList(Resource):
     @api.response(200, 'List of reviews for the place retrieved successfully')
     @api.response(404, 'Place not found')
+    
     def get(self, place_id):
         """Get all reviews for a specific place"""
         place = facade.get_place(place_id)
