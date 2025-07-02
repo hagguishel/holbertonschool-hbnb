@@ -1,6 +1,7 @@
 from .basemodel import BaseModel
-from app import db
+from app import bcrypt, db
 import re
+from sqlalchemy.orm import validates
 class User(BaseModel):
     __tablename__= 'users'
 
@@ -10,15 +11,53 @@ class User(BaseModel):
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
-    def hash_password(self, password):
-        """Hashes the password before storing it."""
-        from app import bcrypt
-        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+    @validates('first_name', 'last_name')
+    def validate_name(self, key, value):
+        if not isinstance(value, str):
+            raise TypeError(f"{key.replace('_', ' ').capitalize()} must be a string")
+        if len(value) > 50:
+            raise ValueError(f"{key.replace('_', ' ').capitalize()} must be at most 50 characters")
+        return value
+
+    @validates('email')
+    def validate_email(self, key, value):
+        if not isinstance(value, str):
+            raise TypeError("Email must be a string")
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
+            raise ValueError("Invalid email format")
+        return value
+
+    @validates('password')
+    def validate_password(self, key, value):
+        if not isinstance(value, str):
+            raise TypeError("Password must be a string")
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if not value.startswith("$2b$"):
+            return bcrypt.generate_password_hash(value).decode('utf-8')
+        return value
+
+    @validates('is_admin')
+    def validate_is_admin(self, key, value):
+        if not isinstance(value, bool):
+            raise TypeError("is_admin must be a boolean")
+        return value
 
     def verify_password(self, password):
         """Verifies if the provided password matches the hashed password."""
-        from app import bcrypt
         return bcrypt.check_password_hash(self.password, password)
+
+    def add_place(self, place):
+        """Add an amenity to the place."""
+        self.places.append(place)
+
+    def add_review(self, review):
+        """Add an amenity to the place."""
+        self.reviews.append(review)
+
+    def delete_review(self, review):
+        """Add an amenity to the place."""
+        self.reviews.remove(review)
 
     def to_dict(self):
         d = super().to_dict()
