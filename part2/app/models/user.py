@@ -29,13 +29,13 @@ class User(BaseModel):
 
     @validates('password')
     def validate_password(self, key, value):
+        if value.startswith('$2b$'):
+            return value
         if not isinstance(value, str):
             raise TypeError("Password must be a string")
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not value.startswith("$2b$"):
-            return bcrypt.generate_password_hash(value).decode('utf-8')
-        return value
+        return bcrypt.generate_password_hash(value).decode('utf-8')
 
     @validates('is_admin')
     def validate_is_admin(self, key, value):
