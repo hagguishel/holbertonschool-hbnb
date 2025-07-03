@@ -8,7 +8,7 @@ class User(BaseModel):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
     @validates('first_name', 'last_name')
@@ -27,7 +27,7 @@ class User(BaseModel):
             raise ValueError("Invalid email format")
         return value
 
-    @validates('password')
+    @validates('password_hash')
     def validate_password(self, key, value):
         if value.startswith('$2b$'):
             return value
@@ -45,7 +45,7 @@ class User(BaseModel):
 
     def verify_password(self, password):
         """Verifies if the provided password matches the hashed password."""
-        return bcrypt.check_password_hash(self.password, password)
+        return bcrypt.check_password_hash(self.password_hash, password)
 
     def add_place(self, place):
         """Add an amenity to the place."""

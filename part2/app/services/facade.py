@@ -3,7 +3,9 @@ from app.models.user import User
 from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
-from sqlalchemy.orm import Session
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 class HBnBFacade:
     def __init__(self):
@@ -14,6 +16,7 @@ class HBnBFacade:
 
     # USER
     def create_user(self, user_data):
+        user_data['password_hash'] = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
         user = User(**user_data)
         self.user_repo.add(user)
         self.user_repo.session.commit() 
