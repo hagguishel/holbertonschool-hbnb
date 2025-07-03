@@ -36,11 +36,7 @@ class UserList(Resource):
             return {'error': 'Email already registered'}, 409
 
         try:
-            from app import bcrypt
-            password = user_data.pop('password')
-            user_data['password'] = bcrypt.generate_password_hash(password).decode('utf-8')
             new_user = facade.create_user(user_data)
-
             return {'id': new_user.id, 'message': 'User registered successfully'}, 201
         except Exception as e:
             return {'error': str(e)}, 400
