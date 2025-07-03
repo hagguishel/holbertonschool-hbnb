@@ -40,6 +40,11 @@ class PlaceList(Resource):
     def post(self):
         """Register a new place"""
         user_id = get_jwt_identity()
+        print("DEBUG - user_id from JWT", user_id)
+
+        if isinstance(user_id, dict):
+            user_id = user_id.get('id') or user_id.get('sub')
+
         place_data = api.payload
         place_data.pop("owner", None)
 
