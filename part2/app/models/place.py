@@ -37,29 +37,29 @@ class Place(BaseModel):
         if value is not None and not isinstance(value, str):
             raise TypeError("Description must be a string or None")
         if value and len(value) > 500:
-            raise ValueError("Description must be a string or None")
+            raise ValueError("Description must be at most 500 characters")
         return value
 
     @validates('price')
     def validate_price(self, key, value):
         if not isinstance(value, (int, float)):
-            raise TypeError("Price must be a float")
+            raise TypeError("Price must be a number")
         if value < 0:
             raise ValueError("Price must be positive.")
         return value
 
     @validates('latitude')
     def validate_latitude(self, key, value):
-        if not isinstance(value, float):
-            raise TypeError("Latitude must be a float")
+        if not isinstance(value, (float, int)):
+            raise TypeError("Latitude must be a number")
         if not -90 <= value <= 90:
             raise ValueError("Latitude must be between -90 and 90.")
         return value
 
     @validates('longitude')
     def validate_longitude(self, key, value):
-        if not isinstance(value, float):
-            raise TypeError("Longitude must be a float")
+        if not isinstance(value, (float, int)):
+            raise TypeError("Longitude must be a number")
         if not -180 <= value <= 180:
             raise ValueError("Longitude must be between -180 and 180.")
         return value
@@ -87,4 +87,10 @@ class Place(BaseModel):
             'longitude': self.longitude,
             'owner_id': self.user_id
         })
+        return d
+
+    def to_dict_full(self):
+        d = self.to_dict()
+        d['amenities'] = [a.to_dict() for a in self.amenities]
+        d['reviews'] = [r.to_dict() for r in self.reviews]
         return d
