@@ -59,6 +59,8 @@ class InMemoryRepository(Repository):
 class SQLAlchemyRepository(Repository):
     def __init__(self, model):
         self.model = model
+        from app import db
+        self.session = db.session
 
     def add(self, obj):
         from app import db
