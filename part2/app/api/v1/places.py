@@ -48,6 +48,9 @@ class PlaceList(Resource):
         place_data = api.payload
         place_data.pop("owner", None)
 
+        if "name" in place_data:
+            place_data['title'] = place_data.pop("name")
+
         if not user_id:
             return {'error': 'Invalid user ID'}, 400
 

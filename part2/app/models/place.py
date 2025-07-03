@@ -11,7 +11,7 @@ amenities_places = db.Table(
 class Place(BaseModel):
     __tablename__ = 'places'
 
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(128), nullable=False)
     description = db.Column(db.String(500), nullable=True)
     price = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
@@ -80,7 +80,7 @@ class Place(BaseModel):
     def to_dict(self):
         d = super().to_dict()
         d.update({
-            'title': self.title,
+            'name': self.title,
             'description': self.description,
             'price': self.price,
             'latitude': self.latitude,
