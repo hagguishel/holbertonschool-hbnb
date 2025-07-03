@@ -11,6 +11,18 @@ class User(BaseModel):
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only")
+
+    @password.setter
+    def password(self, value):
+        if not isinstance(value, str):
+            raise TypeError("Password must be a string")
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        self.password_hash = bcrypt.generate_password_hash(value).decode('utf-8')
+
     @validates('first_name', 'last_name')
     def validate_name(self, key, value):
         if not isinstance(value, str):
@@ -26,16 +38,6 @@ class User(BaseModel):
         if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
             raise ValueError("Invalid email format")
         return value
-
-    @validates('password_hash')
-    def validate_password(self, key, value):
-        if value.startswith('$2b$'):
-            return value
-        if not isinstance(value, str):
-            raise TypeError("Password must be a string")
-        if len(value) < 8:
-            raise ValueError("Password must be at least 8 characters long")
-        return bcrypt.generate_password_hash(value).decode('utf-8')
 
     @validates('is_admin')
     def validate_is_admin(self, key, value):
