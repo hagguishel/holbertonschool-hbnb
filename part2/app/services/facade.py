@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
+from sqlalchemy.orm import Session
 
 class HBnBFacade:
     def __init__(self):
@@ -112,9 +113,27 @@ class HBnBFacade:
     def delete_review(self, review_id):
         review = self.review_repo.get(review_id)
 
+        if not review:
+            raise KeyError('Review not found')
+
+        session = self.review_repo.session
+        with session.no_autoflush:
+            if review.user:
+                try:
+                    review.user.reviews.remove(review)
+                except ValueError:
+                    pass
+
+            if review.place:
+                try:
+                    review.place.reviews.remove(review)
+                except ValueError:
+                    pass
         user = self.user_repo.get(review.user.id)
         place = self.place_repo.get(review.place.id)
 
         user.delete_review(review)
         place.delete_review(review)
         self.review_repo.delete(review_id)
+
+        session.commit()

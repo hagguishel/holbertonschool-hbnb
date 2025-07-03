@@ -85,8 +85,6 @@ class ReviewResource(Resource):
         if str(review.user.id) != str(user_id):
             return {'error': 'Unauthorized'}, 403
 
-
-
         try:
             facade.update_review(review_id, review_data)
             return {'message': 'Review updated successfully'}, 200
