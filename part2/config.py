@@ -7,6 +7,9 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    JWT_SECRET_KEY = 'super-secret-key'
+    JWT_TOKEN_LOCATION = ['headers'] 
+
 class DevelopmentConfig(Config):
     DEBUG = True
 
