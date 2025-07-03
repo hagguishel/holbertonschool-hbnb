@@ -24,7 +24,7 @@ class BaseModel(db.Model):
         return self
 
     def to_dict(self):
-        # Méthode utilitaire pour sérialiser les champs communs
+        # "Utility method to serialize common fields"
         return {
             'id': self.id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
