@@ -74,8 +74,18 @@ class ReviewResource(Resource):
         """Update a review's information"""
         review_data = api.payload
         review = facade.get_review(review_id)
+
         if not review:
             return {'error': 'Review not found'}, 404
+
+        user_id = get_jwt_identity()
+        if isinstance(user_id, dict):
+            user_id = user_id.get('id') or  user_id.get('sub')
+
+        if str(review.user.id) != str(user_id):
+            return {'error': 'Unauthorized'}, 403
+
+
 
         try:
             facade.update_review(review_id, review_data)
@@ -90,8 +100,16 @@ class ReviewResource(Resource):
     def delete(self, review_id):
         """Delete a review"""
         review = facade.get_review(review_id)
+
         if not review:
             return {'error': 'Review not found'}, 404
+
+        user_id= get_jwt_identity()
+        if isinstance(user_id, dict):
+            user_id = user_id.get('id') or user_id.get('sub')
+
+        if str(review.user.id) != str(user_id):
+            return {'error': 'Unauthorized'}, 403
 
         try:
             facade.delete_review(review_id)
