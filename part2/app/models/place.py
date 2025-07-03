@@ -1,7 +1,13 @@
 from .basemodel import BaseModel
+from .user import User
 from app import db
 from sqlalchemy.orm import validates
 
+amenities_places = db.Table(
+    'amenities_places',
+    db.Column('place_id', db.String(36), db.ForeignKey('places.id'), primary_key=True),
+    db.Column('amenity_id', db.String(36), db.ForeignKey('amenities.id'), primary_key=True)
+    )
 class Place(BaseModel):
     __tablename__ = 'places'
 
@@ -11,16 +17,19 @@ class Place(BaseModel):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    amenities = db.relationship('Amenity', secondary='amenities_places', backref='places', lazy='dynamic')
 
     owner = db.relationship('User', backref='places', lazy='select')
+    amenities = db.relationship('Amenity', secondary=amenities_places, backref='places')
+    reviews = db.relationship('Review', back_populates='place', cascade='all, delete-orphan')
 
     @validates('title')
     def validate_title(self, key, value):
         if not isinstance(value, str):
             raise TypeError("Title must be a string")
-        if 10 < len(value) > 100:
-            raise ValueError("Title must be between 10 and 100 characters")
+        if not value.strip():
+            raise ValueError("Title cannot be empty")
+        if len(value) > 100:
+            raise ValueError("Title must be at most 100 characters")
         return value
 
     @validates('description')
@@ -29,10 +38,6 @@ class Place(BaseModel):
             raise TypeError("Description must be a string or None")
         if value and len(value) > 500:
             raise ValueError("Description must be at most 500 characters")
-        if not isinstance(value, str):
-            raise TypeError("Description must be a string")
-        if len(value) > 500:
-            raise ValueError("Description must be less than or equal to 500 characters")
         return value
 
     @validates('price')
@@ -40,9 +45,6 @@ class Place(BaseModel):
         if not isinstance(value, (int, float)):
             raise TypeError("Price must be a number")
         if value < 0:
-        if not isinstance(value, float) and not isinstance(value, int):
-            raise TypeError("Price must be a float")
-        if value <= 0:
             raise ValueError("Price must be positive.")
         return value
 
@@ -62,6 +64,7 @@ class Place(BaseModel):
             raise ValueError("Longitude must be between -180 and 180.")
         return value
 
+
     def add_review(self, review):
         """Add a review to the place."""
         self.reviews.append(review)
@@ -75,19 +78,8 @@ class Place(BaseModel):
         self.amenities.append(amenity)
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'price': self.price,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'owner_id': self.owner.id
-        }
-
-    def to_dict_list(self):
-        return {
-            'id': self.id,
+        d = super().to_dict()
+        d.update({
             'title': self.title,
             'description': self.description,
             'price': self.price,
@@ -102,7 +94,3 @@ class Place(BaseModel):
         d['amenities'] = [a.to_dict() for a in self.amenities]
         d['reviews'] = [r.to_dict() for r in self.reviews]
         return d
-            'owner': self.owner.to_dict(),
-            'amenities': self.amenities,
-            'reviews': self.reviews
-        }
