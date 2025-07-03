@@ -38,21 +38,25 @@ class PlaceList(Resource):
 
     def post(self):
         """Register a new place"""
-        user = get_jwt_identity()
+        user_id = get_jwt_identity()
         place_data = api.payload
-        if user is None or 'id' not in user:
-            return {'error': 'Invalid input data.'}, 400
-        place_data['owner_id'] = user['id']
+        place_data.pop("owner", None)
+        
+        if not user_id:
+            return {'error': 'Invalid user ID'}, 400
 
-        db_user = facade.user_repo.get_by_attribute('id', user['id'])
+        place_data['owner_id'] = user_id
+        db_user = facade.user_repo.get_by_attribute('id', user_id)
+
         if not db_user:
-            return {'error': 'Invalid input data'}, 400
+            return {'error': 'Invalid user'}, 400
+
         try:
             new_place = facade.create_place(place_data)
             return new_place.to_dict(), 201
         except Exception as e:
             return {'error': str(e)}, 400
-
+        
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         """Retrieve a list of all places"""
@@ -78,14 +82,15 @@ class PlaceResource(Resource):
 
     def put(self, place_id):
         """Update a place's information"""
-        user = get_jwt_identity()
+        user_id = get_jwt_identity()
         place = facade.get_place(place_id)
         
         if not place:
             return {'error': 'Place not found'}, 404
 
-        if place.owner_id != user['id']:
+        if str(place.owner.id) != str(user_id):
             return {'error': 'Unauthorized: You are not the owner of this place'}, 403
+
 
         place_data = api.payload
 
