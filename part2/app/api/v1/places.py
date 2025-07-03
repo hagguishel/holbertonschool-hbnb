@@ -25,8 +25,7 @@ place_model = api.model('Place', {
     'price': fields.Float(required=True, description='Price per night'),
     'latitude': fields.Float(required=True, description='Latitude of the place'),
     'longitude': fields.Float(required=True, description='Longitude of the place'),
-    'owner_id': fields.String(required=True, description='ID of the owner'),
-    'owner': fields.Nested(user_model, description='Owner details'),
+    'owner': fields.Nested(user_model, readonly=True, description='Owner details'),
     'amenities': fields.List(fields.String, required=True, description="List of amenities ID's")
 })
 
@@ -46,6 +45,9 @@ class PlaceList(Resource):
             user_id = user_id.get('id') or user_id.get('sub')
 
         place_data = api.payload
+        if 'owner_id' in place_data:
+            return{'error': 'You cannot modify the owner_id'}, 400
+
         place_data.pop("owner", None)
 
         if "name" in place_data:
@@ -102,6 +104,9 @@ class PlaceResource(Resource):
 
 
         place_data = api.payload
+        if 'owner_id' in place_data:
+            return{'error': 'You cannot modify the owner_id'}, 400
+
 
         try:
             updated_place = facade.update_place(place_id, place_data)
