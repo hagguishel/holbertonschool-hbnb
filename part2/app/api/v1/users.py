@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask import request
 
 api = Namespace('users', description='User operations')
 
@@ -17,7 +18,7 @@ class ProtectedResource(Resource):
     @jwt_required()
     def get(self):
         """A protected endpoint that requires a valid JWT token"""
-        current_user_id = get_jwt_identity()  # Ceci est une string, pas un dict
+        current_user_id = get_jwt_identity()
         return {'message': f'Hello, user {current_user_id}'}, 200
     
 @api.route('/')
@@ -72,3 +73,20 @@ class UserResource(Resource):
             return user.to_dict(), 200
         except Exception as e:
             return {'error': str(e)}, 400
+
+    @api.route('/users/')
+    class AdminUserCreate(Resource):
+        @jwt_required()
+        def post(self):
+            claims = get_jwt()
+            if not claims.get('is_admin'):
+                return {'error': 'Admin privileges required'}, 403
+
+            user_data = request.get_json()
+            email = user_data.get('email')
+
+            if facade.get_user_by_email(email):
+                return {'error': 'Email already registered'}, 400
+
+            new_user = facade.create_user(user_data)
+            return {'id': new_user.id, 'message': 'User registered successfully'}, 201

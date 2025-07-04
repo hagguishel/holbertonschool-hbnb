@@ -1,8 +1,10 @@
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from flask import request
 from app.services import facade
 
 api = Namespace('auth', description='Authentication operations')
+api = Namespace('admin', description='Admin operations')
 
 # Model for input validation
 login_model = api.model('Login', {
@@ -33,5 +35,34 @@ class Login(Resource):
 class Protected(Resource):
     @jwt_required()
     def get(self):
-        user_identity = get_jwt_identity()
-        return {"message": f"Hello, user {user_identity['id']}!"}, 200
+        user_id = get_jwt_identity()
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+
+        return {
+            "message": f"Hello, user {user_id}!",
+            "admin": is_admin
+        }, 200
+    
+    @api.route('/users/<user_id>')
+    class AdminUserResource(Resource):
+        @jwt_required()
+        def put(self, user_id):
+            current_user = get_jwt_identity()
+            
+            # If 'is_admin' is part of the identity payload
+            if not current_user.get('is_admin'):
+                return {'error': 'Admin privileges required'}, 403
+
+            data = request.json
+            email = data.get('email')
+
+            if email:
+                # Check if email is already in use
+                existing_user = facade.get_user_by_email(email)
+                if existing_user and existing_user.id != user_id:
+                    return {'error': 'Email is already in use'}, 400
+
+            # Logic to update user details, including email and password
+            pass
+    
