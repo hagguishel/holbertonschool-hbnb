@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from app import db
 from app.models.user import User
 from app.models.place import Place
 from app.models.review import Review
@@ -59,11 +60,9 @@ class InMemoryRepository(Repository):
 class SQLAlchemyRepository(Repository):
     def __init__(self, model):
         self.model = model
-        from app import db
         self.session = db.session
 
     def add(self, obj):
-        from app import db
         db.session.add(obj)
         db.session.commit()
 
@@ -74,7 +73,6 @@ class SQLAlchemyRepository(Repository):
         return self.model.query.all()
 
     def update(self, obj_id, data):
-        from app import db
         obj = self.get(obj_id)
         if obj:
             for key, value in data.items():
@@ -82,7 +80,6 @@ class SQLAlchemyRepository(Repository):
             db.session.commit()
 
     def delete(self, obj_id):
-        from app import db
         obj = self.get(obj_id)
         if obj:
             db.session.delete(obj)

@@ -19,7 +19,6 @@ class HBnBFacade:
         user_data['password_hash'] = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
         user = User(**user_data)
         self.user_repo.add(user)
-        self.user_repo.session.commit() 
         return user
 
     def get_users(self):
@@ -120,24 +119,17 @@ class HBnBFacade:
         if not review:
             raise KeyError('Review not found')
 
+        user = review.user
+        place = review.place
+
         session = self.review_repo.session
+
         with session.no_autoflush:
-            if review.user:
-                try:
-                    review.user.reviews.remove(review)
-                except ValueError:
-                    pass
+            if user and review in user.reviews:
+                user.reviews.remove(review)
+            if place and review in place.reviews:
+                place.reviews.remove(review)
 
-            if review.place:
-                try:
-                    review.place.reviews.remove(review)
-                except ValueError:
-                    pass
-        user = self.user_repo.get(review.user.id)
-        place = self.place_repo.get(review.place.id)
-
-        user.delete_review(review)
-        place.delete_review(review)
         self.review_repo.delete(review_id)
 
         session.commit()
