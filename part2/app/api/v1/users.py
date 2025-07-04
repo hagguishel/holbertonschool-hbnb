@@ -63,14 +63,30 @@ class UserResource(Resource):
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
     @api.response(400, 'Invalid input data')
+    @jwt_required()
     def put(self, user_id):
         user_data = api.payload
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
+
+        requester_id = get_jwt_identity()
+        is_admin = get_jwt().get("is_admin", False)
+
+        if not is_admin and str(requester_id) != str(user_id):
+            return {'error': 'Unauthorized'}, 403
+        
+        email = user_data.get('email')
+        if email:
+            existing_user = facade.get_user_by_email(email)
+
+            if existing_user and existing_user.id != user_id:
+                return {'error': 'Email already in use'}, 400
+
+
         try:
-            facade.update_user(user_id, user_data)
-            return user.to_dict(), 200
+            updated_user = facade.update_user(user_id, user_data)
+            return {'id': updated_user.id, 'message': 'User updated successfully'}, 200
         except Exception as e:
             return {'error': str(e)}, 400
 
