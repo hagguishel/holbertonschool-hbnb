@@ -110,3 +110,10 @@ class AdminUserCreateUser(Resource):
             return {'id': new_user.id, 'message': 'User created by admin'}, 201
         except Exception as e:
             return {'error': str(e)}, 400
+
+    @api.route('/check-admin/')
+    class CheckAdmin(Resource):
+        @jwt_required()
+        def get(self):
+            is_admin = get_jwt().get("is_admin", False)
+            return {"is_admin": is_admin}, 200
