@@ -74,19 +74,23 @@ class UserResource(Resource):
         except Exception as e:
             return {'error': str(e)}, 400
 
-    @api.route('/users/')
-    class AdminUserCreate(Resource):
-        @jwt_required()
-        def post(self):
-            claims = get_jwt()
-            if not claims.get('is_admin'):
-                return {'error': 'Admin privileges required'}, 403
+@api.route('/admin/')
+class AdminUserCreateUser(Resource):
+    @jwt_required()
+    def post(self):
+        """Admin-only user creation"""
+        claims = get_jwt()
+        if not claims.get('is_admin', False):
+            return {'error': 'Admin privileges required'}, 403
 
-            user_data = request.get_json()
-            email = user_data.get('email')
+        user_data = request.get_json()
+        email = user_data.get('email')
 
-            if facade.get_user_by_email(email):
-                return {'error': 'Email already registered'}, 400
+        if facade.get_user_by_email(email):
+            return {'error': 'Email already registered'}, 400
 
+        try:
             new_user = facade.create_user(user_data)
-            return {'id': new_user.id, 'message': 'User registered successfully'}, 201
+            return {'id': new_user.id, 'message': 'User created by admin'}, 201
+        except Exception as e:
+            return {'error': str(e)}, 400
