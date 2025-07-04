@@ -1,7 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 from app import db
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 api = Namespace('places', description='Place operations')
 
@@ -94,26 +94,27 @@ class PlaceResource(Resource):
     def put(self, place_id):
         """Update a place's information"""
         user_id = get_jwt_identity()
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
         place = facade.get_place(place_id)
 
         if not place:
             return {'error': 'Place not found'}, 404
 
-        if str(place.owner.id) != str(user_id):
+        if not is_admin and str(place.owner.id) != str(user_id):
             return {'error': 'Unauthorized: You are not the owner of this place'}, 403
 
-
         place_data = api.payload
-        if 'owner_id' in place_data:
-            return{'error': 'You cannot modify the owner_id'}, 400
 
+        if 'owner_id' in place_data:
+            return {'error': 'You cannot modify the owner_id'}, 400
 
         try:
-            updated_place = facade.update_place(place_id, place_data)
+            facade.update_place(place_id, place_data)
             return {'message': 'Place updated successfully'}, 200
         except Exception as e:
             return {'error': str(e)}, 400
-
+    
 @api.route('/<place_id>/amenities')
 class PlaceAmenities(Resource):
     @api.expect([amenity_model])
@@ -153,4 +154,3 @@ class PlaceReviewList(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
         return [review.to_dict() for review in place.reviews], 200
-
