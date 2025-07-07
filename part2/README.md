@@ -99,7 +99,7 @@ user_id: FK(User.id)
 ---
 ## 🧩 Entity-Relationship Diagram
 
-![ER Diagram](docs/er_diagram.png)
+![ER Diagram](er_diagram.png)
 
 
 ---
