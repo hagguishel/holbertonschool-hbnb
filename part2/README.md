@@ -96,18 +96,21 @@ user_id: FK(User.id)
 * Unique constraint: (user\_id, place\_id)
 
 ---
-
-## ---
-
+---
 ## 🧩 Entity-Relationship Diagram
 
-![Entity Relationship Diagram](docs/er_diagram.png)
+![ER Diagram](docs/er_diagram.png)
 
-```
+
+---
+---
+
 ## 📊 SQL Query Examples
 
+```
 SELECT * FROM User;
 SELECT * FROM Place WHERE price > 200;
+---
 
 ## 🤖 Sample Endpoints
 
@@ -115,7 +118,7 @@ SELECT * FROM Place WHERE price > 200;
 GET /api/v1/places/<place_id>
 POST /api/v1/users
 ```
-
+---
 The `run.py` file sets up the Flask app and database:
 
 ```python
@@ -169,6 +172,38 @@ File: `test_database.py`
 ```bash
 pytest test_database.py
 ```
+### Manual Tests with cURL
+
+#### ✅ Create a User
+
+curl -X POST http://127.0.0.1:5000/api/v1/users \
+     -H "Content-Type: application/json" \
+     -d '{
+           "first_name": "Maxence",
+           "last_name": "Potier",
+           "email": "maxence.potier@example.com",
+           "password": "securepassword123"
+         }'
+
+#### ✅ Auth/Login 
+
+curl -X POST http://127.0.0.1:5000/api/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{
+           "email": "maxence.potier@example.com",
+           "password": "securepassword123"
+         }'
+
+Your backend should return a JSON with a JWT access token, for example:
+
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+}
+
+#### 🔐 Example of a protected request using the token:
+
+curl -X GET http://127.0.0.1:5000/api/v1/users \
+     -H "Authorization: Bearer <access_token>"
 
 ---
 
@@ -203,13 +238,16 @@ pip install -r requirements.txt
 
 Project developed as part of Holberton School.
 
-**Julien Pulon**
-Web & Mobile Developer
-[@LinkedIn](https://www.linkedin.com/in/julienpulon/)
 
+Web & Mobile Developer
+developpers :
+## Haggui Razafimaitso ##
+github: https://github.com/hagguishel
+## Julien Pulon ##
+github: https://github.com/JulienPul
+updated: 20/06/2025
 ---
 
 ## 📃 License
 
-MIT - See the `LICENSE` file if available.
-
+his project is part of the Holberton School curriculum and is intended for educational purposes only.
