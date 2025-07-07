@@ -10,8 +10,7 @@ class Review(BaseModel):
     place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
 
-    user = db.relationship('User', backref=db.backref('reviews', lazy='dynamic'), lazy='select')
-    place = db.relationship('Place', back_populates='reviews')  # <- ici c'est bon
+    place = db.relationship('Place', back_populates='reviews')
 
     @validates('text')
     def validate_text(self, key, value):
