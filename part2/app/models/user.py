@@ -26,6 +26,14 @@ class User(BaseModel):
             raise ValueError("Password must be at least 8 characters long")
         self.password_hash = bcrypt.generate_password_hash(value).decode('utf-8')
 
+    def hash_password(self, password):
+        """Hashes the password before storing it."""
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    def verify_password(self, password):
+        """Verifies if the provided password matches the hashed password."""
+        return bcrypt.check_password_hash(self.password_hash, password)
+
     @validates('first_name', 'last_name')
     def validate_name(self, key, value):
         if not isinstance(value, str):

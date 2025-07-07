@@ -31,8 +31,22 @@ class HBnBFacade:
     def get_user_by_email(self, email):
         return self.user_repo.get_by_attribute('email', email)
 
-    def update_user(self, user_id, user_data):
+    def update_user(self, user_id, user_data, is_admin=False):
+        user = self.user_repo.get(user_id)
+        if not user:
+            raise KeyError('User not found')
+
+        if not is_admin:
+            user_data.pop('email', None)
+            user_data.pop('password', None)
+        else:
+            if 'password' in user_data:
+                hashed = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
+                user_data['password_hash'] = hashed
+                user_data.pop('password', None)
+
         self.user_repo.update(user_id, user_data)
+        return user
 
     # AMENITY
     def create_amenity(self, amenity_data):
