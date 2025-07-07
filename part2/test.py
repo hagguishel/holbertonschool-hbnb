@@ -5,6 +5,8 @@ from app import create_app, db
 from app.models.user import User
 import requests
 
+BASE = "http://127.0.0.1:5000/api/v1"  # Définition globale de BASE
+
 def print_result(test_name, result):
     if result:
         print(f"✅ {test_name} : OK")
@@ -15,7 +17,7 @@ def test_factory_config():
     app = create_app()
     with app.app_context():
         print("Test 1 : Config par défaut (DevelopmentConfig)")
-        default_ok = app.config["DEBUG"] == True
+        default_ok = app.config["DEBUG"] is True
         print_result("DEBUG = True (par défaut)", default_ok)
         has_custom = hasattr(config.DevelopmentConfig, "DEBUG")
         print_result("Attribut DEBUG existe dans config.DevelopmentConfig", has_custom)
@@ -23,7 +25,7 @@ def test_factory_config():
     app2 = create_app(config.ProductionConfig)
     with app2.app_context():
         print("\nTest 2 : Config ProductionConfig")
-        prod_ok = app2.config["DEBUG"] == False
+        prod_ok = app2.config["DEBUG"] is False
         print_result("DEBUG = False (en Production)", prod_ok)
         prod_env = app2.config["ENV"] == "production"
         print_result("ENV = 'production'", prod_env)
@@ -32,7 +34,7 @@ def test_factory_config():
         app3 = create_app(config.TestingConfig)
         with app3.app_context():
             print("\nTest 3 : Config TestingConfig")
-            testing_ok = app3.config["TESTING"] == True
+            testing_ok = app3.config["TESTING"] is True
             print_result("TESTING = True (en Testing)", testing_ok)
 
     print("\n==== FIN DES TESTS FACTORY CONFIG ====")
@@ -65,7 +67,6 @@ def test_user_password():
         print("==== TESTS HASH PASSWORD TERMINÉS ====\n")
 
 def test_jwt_login_and_protected():
-    BASE = "http://127.0.0.1:5000/api/v1"
     print("==== Test JWT Login et accès endpoint protégé ====")
 
     r = requests.post(f"{BASE}/users/", json={
@@ -103,7 +104,6 @@ def test_jwt_login_and_protected():
 # ----------- Partie Auth Endpoints sécurisés -----------
 
 def get_user_id_by_email(email):
-    BASE = "http://127.0.0.1:5000/api/v1"
     r = requests.get(f"{BASE}/users/")
     r.raise_for_status()
     for user in r.json():
@@ -112,25 +112,24 @@ def get_user_id_by_email(email):
     raise Exception("User not found: " + email)
 
 def get_token(email, password):
-    BASE = "http://127.0.0.1:5000/api/v1"
     r = requests.post(f"{BASE}/auth/login", json={
         "email": email, "password": password
     })
     assert r.status_code == 200, f"Login failed: {r.text}"
     return r.json()["access_token"]
 
-def create_user(email, first, last, password):
-    BASE = "http://127.0.0.1:5000/api/v1"
-    r = requests.post(f"{BASE}/users/", json={
+def create_user(email, first, last, password, is_admin=False):
+    data = {
         "email": email,
         "first_name": first,
         "last_name": last,
         "password": password
-    })
+    }
+    # Note: si l’API ne permet pas d’indiquer is_admin à la création, gérer la création admin à part
+    r = requests.post(f"{BASE}/users/", json=data)
     assert r.status_code in (201, 409), f"User create failed: {r.text}"
 
 def test_authenticated_endpoints():
-    BASE = "http://127.0.0.1:5000/api/v1"
     print("==== PREPARATION USERS & TOKENS ====")
     create_user("usera@mail.com", "Alice", "Wonderland", "PasswordA123")
     create_user("userb@mail.com", "Bob", "Builder", "PasswordB123")
@@ -195,12 +194,10 @@ def test_authenticated_endpoints():
     print("✅ UserB peut supprimer sa propre review")
 
     print("==== TEST MODIF USER ====")
-    # UserA ne peut PAS changer son email ni password
     r = requests.put(f"{BASE}/users/{userA_id}", json={"email": "hacker@mail.com"}, headers=headersA)
     assert r.status_code == 400 and "cannot modify email" in r.text, "UserA change son email: ECHEC"
     print("✅ UserA ne peut PAS changer son email")
 
-    # UserB ne peut PAS modifier les infos de UserA
     r = requests.put(f"{BASE}/users/{userA_id}", json={"first_name": "Hacker"}, headers=headersB)
     assert r.status_code == 403 and "Unauthorized" in r.text, "UserB modif UserA: ECHEC"
     print("✅ UserB ne peut PAS modifier un autre user")
@@ -216,8 +213,86 @@ def test_authenticated_endpoints():
 
     print("\n==== ALL TESTS PASSED, TASK VALIDATED ====")
 
+def main():
+    print("==== PREPARATION ADMIN ====")
+    admin_email = "admin@mail.com"
+    user_email = "userc@mail.com"
+
+    create_user(admin_email, "Super", "Admin", "Admin12345", is_admin=True)
+    create_user(user_email, "Charlie", "Normal", "UserC12345", is_admin=False)
+
+    admin_token = get_token(admin_email, "Admin12345")
+    user_token = get_token(user_email, "UserC12345")
+    headers_admin = {"Authorization": f"Bearer {admin_token}"}
+    headers_user = {"Authorization": f"Bearer {user_token}"}
+
+    print("==== TEST ADMIN CREATE USER ====")
+    r = requests.post(f"{BASE}/users/", json={
+        "email": "nouvelutilisateur@mail.com",
+        "first_name": "Nouveau",
+        "last_name": "Utilisateur",
+        "password": "SuperPass2025"
+    }, headers=headers_admin)
+    print_result("Admin peut créer un nouvel utilisateur", r.status_code == 201)
+
+    user_id = requests.get(f"{BASE}/users/", headers=headers_admin).json()[-1]["id"]
+    new_email = "utilisateur_modifie@mail.com"
+    r = requests.put(f"{BASE}/users/{user_id}", json={
+        "first_name": "Modifié",
+        "last_name": "Utilisateur",
+        "email": new_email,
+        "password": "MotDePasseModif2025"
+    }, headers=headers_admin)
+    print_result("Admin peut modifier toutes les infos d'un user", r.status_code == 200)
+
+    r = requests.put(f"{BASE}/users/{user_id}", json={
+        "email": admin_email
+    }, headers=headers_admin)
+    print_result("Admin reçoit une erreur si email déjà utilisé", r.status_code == 400 and "already in use" in r.text)
+
+    print("==== TEST ADMIN AMENITY ====")
+    r = requests.post(f"{BASE}/amenities/", json={"name": "Sauna"}, headers=headers_admin)
+    print_result("Admin peut ajouter une amenity", r.status_code == 201)
+    amenity_id = r.json()["id"]
+
+    r = requests.put(f"{BASE}/amenities/{amenity_id}", json={"name": "Super Sauna"}, headers=headers_admin)
+    print_result("Admin peut modifier une amenity", r.status_code == 200)
+
+    print("==== TEST ADMIN BYPASS OWNERSHIP ====")
+    place_data = {
+        "title": "Chez Charlie",
+        "description": "Endroit simple",
+        "price": 99,
+        "latitude": 0.0,
+        "longitude": 0.0
+    }
+    r = requests.post(f"{BASE}/places/", json=place_data, headers=headers_user)
+    assert r.status_code == 201, "Erreur création place par user normal"
+    place_id = r.json()["id"]
+
+    # IMPORTANT : ici on utilise headers_admin pour que l’admin puisse créer la review
+    r = requests.post(f"{BASE}/reviews/", json={
+        "place_id": place_id,
+        "text": "Cool",
+        "rating": 5
+    }, headers=headers_admin)
+    assert r.status_code == 201, "Erreur création review"
+    review_id = r.json()["id"]
+
+    r = requests.put(f"{BASE}/places/{place_id}", json={"title": "Modif Admin"}, headers=headers_admin)
+    print_result("Admin peut modifier une place qu'il ne possède pas", r.status_code == 200)
+
+    r = requests.put(f"{BASE}/reviews/{review_id}", json={"text": "Admin edit", "rating": 3}, headers=headers_admin)
+    print_result("Admin peut éditer une review qu'il ne possède pas", r.status_code == 200)
+
+    r = requests.delete(f"{BASE}/reviews/{review_id}", headers=headers_admin)
+    print_result("Admin peut supprimer une review qu'il ne possède pas", r.status_code == 200)
+
+    print("\n==== ALL ADMIN TESTS PASSED IF ALL GREEN ====")
+
 if __name__ == "__main__":
     test_factory_config()
     test_user_password()
     test_jwt_login_and_protected()
     test_authenticated_endpoints()
+    main()
