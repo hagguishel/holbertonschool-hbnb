@@ -11,6 +11,9 @@ class User(BaseModel):
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
+    places = db.relationship('Place', backref='owner', lazy='select')
+    reviews =  db.relationship('Review', backref='user', lazy='select')
+
     @property
     def password(self):
         raise AttributeError("Password is write-only")
