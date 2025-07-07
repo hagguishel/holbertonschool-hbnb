@@ -47,7 +47,7 @@ SQLite for quick testing, MySQL for production
 Pytest for unit tests
 
 Raw SQL for schema definition
----
+
 ---
 
 ## 🎓 SQLAlchemy Models
@@ -96,20 +96,20 @@ user_id: FK(User.id)
 * Unique constraint: (user\_id, place\_id)
 
 ---
----
+
 ## 🧩 Entity-Relationship Diagram
 
 ![ER Diagram](er_diagram.png)
 
 
 ---
----
 
 ## 📊 SQL Query Examples
 
-```
+```sql
 SELECT * FROM User;
 SELECT * FROM Place WHERE price > 200;
+```
 ---
 
 ## 🤖 Sample Endpoints
@@ -118,16 +118,6 @@ SELECT * FROM Place WHERE price > 200;
 GET /api/v1/places/<place_id>
 POST /api/v1/users
 ```
----
-The `run.py` file sets up the Flask app and database:
-
-```python
-app = create_app()
-with app.app_context():
-    db.create_all()
-app.run(debug=True)
-```
-
 ---
 
 ## 🧰 Business Logic (Facade)
@@ -141,6 +131,15 @@ Located in `app/services/facade.py`, the `HBnBFacade` class centralizes operatio
 ---
 
 ## 🔧 Running the Project
+
+The `run.py` file sets up the Flask app and database:
+
+```python
+app = create_app()
+with app.app_context():
+    db.create_all()
+app.run(debug=True)
+```
 
 ```bash
 git clone https://github.com/votre-utilisateur/holbertonschool-hbnb.git
@@ -176,6 +175,7 @@ pytest test_database.py
 
 #### ✅ Create a User
 
+```bash
 curl -X POST http://127.0.0.1:5000/api/v1/users \
      -H "Content-Type: application/json" \
      -d '{
@@ -204,7 +204,7 @@ Your backend should return a JSON with a JWT access token, for example:
 
 curl -X GET http://127.0.0.1:5000/api/v1/users \
      -H "Authorization: Bearer <access_token>"
-
+```
 ---
 
 ## 📊 SQL Query Examples
@@ -239,13 +239,15 @@ pip install -r requirements.txt
 Project developed as part of Holberton School.
 
 
-Web & Mobile Developer
-developpers :
-## Haggui Razafimaitso ##
+##Web & Mobile Developers:##
+
+Haggui Razafimaitso
 github: https://github.com/hagguishel
-## Julien Pulon ##
+
+Julien Pulon
 github: https://github.com/JulienPul
 updated: 20/06/2025
+
 ---
 
 ## 📃 License
