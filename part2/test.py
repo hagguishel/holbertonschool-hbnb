@@ -1,71 +1,223 @@
-# test_relationships.py
+# test.py
 
+import config
 from app import create_app, db
 from app.models.user import User
-from app.models.place import Place
-from app.models.review import Review
-from app.models.amenity import Amenity
+import requests
 
-def main():
+def print_result(test_name, result):
+    if result:
+        print(f"✅ {test_name} : OK")
+    else:
+        print(f"❌ {test_name} : ECHEC")
+
+def test_factory_config():
     app = create_app()
     with app.app_context():
-        # Reset database (attention, efface tout !)
+        print("Test 1 : Config par défaut (DevelopmentConfig)")
+        default_ok = app.config["DEBUG"] == True
+        print_result("DEBUG = True (par défaut)", default_ok)
+        has_custom = hasattr(config.DevelopmentConfig, "DEBUG")
+        print_result("Attribut DEBUG existe dans config.DevelopmentConfig", has_custom)
+
+    app2 = create_app(config.ProductionConfig)
+    with app2.app_context():
+        print("\nTest 2 : Config ProductionConfig")
+        prod_ok = app2.config["DEBUG"] == False
+        print_result("DEBUG = False (en Production)", prod_ok)
+        prod_env = app2.config["ENV"] == "production"
+        print_result("ENV = 'production'", prod_env)
+
+    if hasattr(config, "TestingConfig"):
+        app3 = create_app(config.TestingConfig)
+        with app3.app_context():
+            print("\nTest 3 : Config TestingConfig")
+            testing_ok = app3.config["TESTING"] == True
+            print_result("TESTING = True (en Testing)", testing_ok)
+
+    print("\n==== FIN DES TESTS FACTORY CONFIG ====")
+
+def test_user_password():
+    app = create_app()
+    with app.app_context():
         db.drop_all()
         db.create_all()
 
-        print("==== Création des entités ====")
-        user = User(first_name="Alice", last_name="Wonderland", email="alice@mail.com", password="SuperSecret123")
+        print("==== Test création utilisateur avec password hashé ====")
+        user = User(
+            first_name="Bob",
+            last_name="Hashed",
+            email="bob.hash@example.com"
+        )
+        user.password = "PasswordUltraSecure123"
         db.session.add(user)
         db.session.commit()
-        print("User:", user.id, user.first_name)
 
-        place = Place(
-            title="Château Magique",
-            description="Un superbe endroit",
-            price=150.0,
-            latitude=48.853,
-            longitude=2.349,
-            owner=user  # Lien via la relation
-        )
-        db.session.add(place)
-        db.session.commit()
-        print("Place:", place.id, place.title, "Owner:", place.owner.first_name)
+        raw_ok = user.password_hash != "PasswordUltraSecure123" and user.password_hash.startswith("$2b$")
+        print_result("Mot de passe hashé et non stocké en clair", raw_ok)
 
-        wifi = Amenity(name="WiFi")
-        pool = Amenity(name="Piscine")
-        db.session.add_all([wifi, pool])
-        db.session.commit()
-        print("Amenities:", [a.name for a in [wifi, pool]])
+        verify_ok = user.verify_password("PasswordUltraSecure123") is True and user.verify_password("badpass") is False
+        print_result("verify_password() : vrai si bon password, faux sinon", verify_ok)
 
-        # Ajout des amenities à la place
-        place.amenities.append(wifi)
-        place.amenities.append(pool)
-        db.session.commit()
-        print("Place amenities:", [a.name for a in place.amenities])
-        print("WiFi places:", [p.title for p in wifi.places])
+        not_in_dict = "password" not in user.to_dict() and "password_hash" not in user.to_dict()
+        print_result("Mot de passe non exposé dans to_dict", not_in_dict)
 
-        review = Review(
-            text="Incroyable expérience !",
-            rating=5,
-            user=user,
-            place=place
-        )
-        db.session.add(review)
-        db.session.commit()
-        print("Review:", review.text, "By:", review.user.first_name, "For place:", review.place.title)
+        print("==== TESTS HASH PASSWORD TERMINÉS ====\n")
 
-        # Vérif des relations
-        print("\n==== Vérification des relations ====")
-        print("user.places:", [p.title for p in user.places])            # [Château Magique]
-        print("user.reviews:", [r.text for r in user.reviews])           # [Incroyable expérience !]
-        print("place.owner:", place.owner.first_name)                    # Alice
-        print("place.amenities:", [a.name for a in place.amenities])     # [WiFi, Piscine]
-        print("place.reviews:", [r.text for r in place.reviews])         # [Incroyable expérience !]
-        print("wifi.places:", [p.title for p in wifi.places])            # [Château Magique]
-        print("review.user:", review.user.first_name)                    # Alice
-        print("review.place:", review.place.title)                       # Château Magique
+def test_jwt_login_and_protected():
+    BASE = "http://127.0.0.1:5000/api/v1"
+    print("==== Test JWT Login et accès endpoint protégé ====")
 
-        print("\n==== TEST OK ====")
+    r = requests.post(f"{BASE}/users/", json={
+        "first_name": "Bob",
+        "last_name": "JWTUser",
+        "email": "bob.jwt@example.com",
+        "password": "SuperSecret123"
+    })
+    if r.status_code in (200, 201, 409):
+        print("✅ Utilisateur prêt (créé ou déjà existant)")
+    else:
+        print(f"⚠️ Création user: {r.status_code} {r.text}")
+
+    r = requests.post(f"{BASE}/auth/login", json={
+        "email": "bob.jwt@example.com",
+        "password": "SuperSecret123"
+    })
+    assert r.status_code == 200, f"Erreur login : {r.status_code} {r.text}"
+    data = r.json()
+    token = data.get("access_token")
+    assert token, "❌ Token non reçu"
+    print("✅ Token reçu :", token[:25], "...")
+
+    headers = {"Authorization": f"Bearer {token}"}
+    r = requests.get(f"{BASE}/auth/protected", headers=headers)
+    assert r.status_code == 200, f"Erreur accès protégé: {r.status_code} {r.text}"
+    print("✅ Accès endpoint protégé :", r.json())
+
+    r = requests.get(f"{BASE}/auth/protected")
+    assert r.status_code == 401, "❌ Endpoint protégé accessible sans token!"
+    print("✅ Refus accès sans token : OK")
+
+    print("==== TESTS JWT TERMINÉS ====")
+
+# ----------- Partie Auth Endpoints sécurisés -----------
+
+def get_user_id_by_email(email):
+    BASE = "http://127.0.0.1:5000/api/v1"
+    r = requests.get(f"{BASE}/users/")
+    r.raise_for_status()
+    for user in r.json():
+        if user["email"] == email:
+            return user["id"]
+    raise Exception("User not found: " + email)
+
+def get_token(email, password):
+    BASE = "http://127.0.0.1:5000/api/v1"
+    r = requests.post(f"{BASE}/auth/login", json={
+        "email": email, "password": password
+    })
+    assert r.status_code == 200, f"Login failed: {r.text}"
+    return r.json()["access_token"]
+
+def create_user(email, first, last, password):
+    BASE = "http://127.0.0.1:5000/api/v1"
+    r = requests.post(f"{BASE}/users/", json={
+        "email": email,
+        "first_name": first,
+        "last_name": last,
+        "password": password
+    })
+    assert r.status_code in (201, 409), f"User create failed: {r.text}"
+
+def test_authenticated_endpoints():
+    BASE = "http://127.0.0.1:5000/api/v1"
+    print("==== PREPARATION USERS & TOKENS ====")
+    create_user("usera@mail.com", "Alice", "Wonderland", "PasswordA123")
+    create_user("userb@mail.com", "Bob", "Builder", "PasswordB123")
+
+    tokenA = get_token("usera@mail.com", "PasswordA123")
+    tokenB = get_token("userb@mail.com", "PasswordB123")
+    headersA = {"Authorization": f"Bearer {tokenA}"}
+    headersB = {"Authorization": f"Bearer {tokenB}"}
+
+    userA_id = get_user_id_by_email("usera@mail.com")
+    userB_id = get_user_id_by_email("userb@mail.com")
+
+    print("==== TEST PLACES ====")
+    placeA = {
+        "title": "Chez Alice",
+        "description": "Un super endroit",
+        "price": 120,
+        "latitude": 42.0,
+        "longitude": 2.0
+    }
+    r = requests.post(f"{BASE}/places/", json=placeA, headers=headersA)
+    assert r.status_code == 201, f"Create place failed: {r.text}"
+    placeA_id = r.json()["id"]
+    print("✅ UserA peut créer sa place")
+
+    r = requests.put(f"{BASE}/places/{placeA_id}", json={"title": "EditBob"}, headers=headersB)
+    assert r.status_code == 403 and "Unauthorized" in r.text, "UserB modif la place d'Alice: ECHEC"
+    print("✅ UserB ne peut PAS modifier la place d'Alice")
+
+    r = requests.put(f"{BASE}/places/{placeA_id}", json={"title": "EditAlice"}, headers=headersA)
+    assert r.status_code == 200, "UserA ne peut pas modifier sa propre place"
+    print("✅ UserA peut modifier sa propre place")
+
+    print("==== TEST REVIEWS ====")
+    r = requests.post(f"{BASE}/reviews/", json={"place_id": placeA_id, "text": "Je suis chez moi", "rating": 5}, headers=headersA)
+    assert r.status_code == 400 and "own place" in r.text, "UserA review sa propre place: ECHEC"
+    print("✅ UserA ne peut PAS reviewer sa propre place")
+
+    r = requests.post(f"{BASE}/reviews/", json={"place_id": placeA_id, "text": "Magnifique", "rating": 5}, headers=headersB)
+    assert r.status_code == 201, "UserB ne peut pas reviewer la place d'Alice"
+    review_id = r.json()["id"]
+    print("✅ UserB peut reviewer la place d'Alice")
+
+    r = requests.post(f"{BASE}/reviews/", json={"place_id": placeA_id, "text": "Encore!", "rating": 4}, headers=headersB)
+    assert r.status_code == 400 and "already reviewed" in r.text, "UserB peut reviewer deux fois: ECHEC"
+    print("✅ UserB ne peut PAS reviewer deux fois la même place")
+
+    r = requests.put(f"{BASE}/reviews/{review_id}", json={"text": "J'édite la review de Bob"}, headers=headersA)
+    assert r.status_code == 403, "UserA édite la review de Bob: ECHEC"
+    print("✅ UserA ne peut PAS éditer la review de Bob")
+
+    r = requests.put(f"{BASE}/reviews/{review_id}", json={"text": "Edit by Bob", "rating": 4}, headers=headersB)
+    assert r.status_code == 200, "UserB ne peut pas éditer sa propre review"
+    print("✅ UserB peut éditer sa propre review")
+
+    r = requests.delete(f"{BASE}/reviews/{review_id}", headers=headersA)
+    assert r.status_code == 403, "UserA delete review de Bob: ECHEC"
+    print("✅ UserA ne peut PAS supprimer la review de Bob")
+
+    r = requests.delete(f"{BASE}/reviews/{review_id}", headers=headersB)
+    assert r.status_code == 200, "UserB ne peut pas supprimer sa propre review"
+    print("✅ UserB peut supprimer sa propre review")
+
+    print("==== TEST MODIF USER ====")
+    # UserA ne peut PAS changer son email ni password
+    r = requests.put(f"{BASE}/users/{userA_id}", json={"email": "hacker@mail.com"}, headers=headersA)
+    assert r.status_code == 400 and "cannot modify email" in r.text, "UserA change son email: ECHEC"
+    print("✅ UserA ne peut PAS changer son email")
+
+    # UserB ne peut PAS modifier les infos de UserA
+    r = requests.put(f"{BASE}/users/{userA_id}", json={"first_name": "Hacker"}, headers=headersB)
+    assert r.status_code == 403 and "Unauthorized" in r.text, "UserB modif UserA: ECHEC"
+    print("✅ UserB ne peut PAS modifier un autre user")
+
+    print("==== TEST PUBLIC ENDPOINTS ====")
+    r = requests.get(f"{BASE}/places/")
+    assert r.status_code == 200, "GET /places/ non accessible publiquement"
+    print("✅ GET /places/ accessible publiquement")
+
+    r = requests.get(f"{BASE}/places/{placeA_id}")
+    assert r.status_code == 200, "GET /places/<id> non accessible publiquement"
+    print("✅ GET /places/<id> accessible publiquement")
+
+    print("\n==== ALL TESTS PASSED, TASK VALIDATED ====")
 
 if __name__ == "__main__":
-    main()
+    test_factory_config()
+    test_user_password()
+    test_jwt_login_and_protected()
+    test_authenticated_endpoints()

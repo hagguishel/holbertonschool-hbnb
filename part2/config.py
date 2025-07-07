@@ -11,7 +11,18 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
 
+class ProductionConfig(Config):
+    DEBUG = False
+    ENV = 'production'
+
+class TestingConfig(Config):
+    DEBUG = False
+    TESTING = True
+    ENV = 'testing'
+
 config = {
     'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
     'default': DevelopmentConfig
 }

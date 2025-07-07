@@ -20,7 +20,7 @@ class ProtectedResource(Resource):
         """A protected endpoint that requires a valid JWT token"""
         current_user_id = get_jwt_identity()
         return {'message': f'Hello, user {current_user_id}'}, 200
-    
+
 @api.route('/')
 class UserList(Resource):
     @api.expect(user_model, validate=True)
@@ -75,7 +75,10 @@ class UserResource(Resource):
 
         if not is_admin and str(requester_id) != str(user_id):
             return {'error': 'Unauthorized'}, 403
-        
+
+        if "email" in user_data or "password" in user_data:
+            return {'error': 'You cannot modify email or password.'}, 400
+
         email = user_data.get('email')
         if email:
             existing_user = facade.get_user_by_email(email)
