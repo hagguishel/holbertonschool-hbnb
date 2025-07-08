@@ -64,7 +64,9 @@ class PlaceList(Resource):
 
         try:
             new_place = facade.create_place(place_data)
-            return new_place.to_dict_full(), 201
+            res = new_place.to_dict_full()
+            res["message"] = "Place created successfully"
+            return res, 201
         except Exception as e:
             return {'error': str(e)}, 400
 
@@ -111,10 +113,13 @@ class PlaceResource(Resource):
 
         try:
             facade.update_place(place_id, place_data)
-            return {'message': 'Place updated successfully'}, 200
+            updated_place = facade.get_place(place_id)
+            res = updated_place.to_dict_full()
+            res["message"] = "Place updated successfully"
+            return res, 200
         except Exception as e:
             return {'error': str(e)}, 400
-    
+
 @api.route('/<place_id>/amenities')
 class PlaceAmenities(Resource):
     @api.expect([amenity_model])

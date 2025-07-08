@@ -11,8 +11,10 @@ class User(BaseModel):
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
-    places = db.relationship('Place', backref='owner', lazy='select')
-    reviews =  db.relationship('Review', backref='user', lazy='select')
+    places = db.relationship(
+        'Place', back_populates='owner', lazy='select', overlaps="owner,places")
+    reviews =  db.relationship(
+        'Review', back_populates='user', lazy='select', overlaps="user,reviews")
 
     @property
     def password(self):
@@ -29,10 +31,6 @@ class User(BaseModel):
     def hash_password(self, password):
         """Hashes the password before storing it."""
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-
-    def verify_password(self, password):
-        """Verifies if the provided password matches the hashed password."""
-        return bcrypt.check_password_hash(self.password_hash, password)
 
     @validates('first_name', 'last_name')
     def validate_name(self, key, value):
@@ -61,15 +59,15 @@ class User(BaseModel):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def add_place(self, place):
-        """Add an amenity to the place."""
+        """Add a place to the user."""
         self.places.append(place)
 
     def add_review(self, review):
-        """Add an amenity to the place."""
+        """Add a review to the user."""
         self.reviews.append(review)
 
     def delete_review(self, review):
-        """Add an amenity to the place."""
+        """Remove a review from the."""
         self.reviews.remove(review)
 
     def to_dict(self):
