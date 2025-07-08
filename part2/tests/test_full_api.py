@@ -393,3 +393,146 @@ def test_cascade_delete_reviews():
         db.session.commit()
 
         assert Review.query.filter_by(id=review.id).first() is None
+
+import pytest
+import requests
+
+BASE_URL = "http://127.0.0.1:5000/api/v1"
+
+# Données utilisateurs tests
+USER_ADMIN = {
+    "email": "admin@mail.com",
+    "password": "AdminPass123",
+    "first_name": "Admin",
+    "last_name": "User",
+    "is_admin": True
+}
+
+USER_A = {
+    "email": "usera@mail.com",
+    "password": "UserAPass123",
+    "first_name": "Alice",
+    "last_name": "Test"
+}
+
+USER_B = {
+    "email": "userb@mail.com",
+    "password": "UserBPass123",
+    "first_name": "Bob",
+    "last_name": "Test"
+}
+
+@pytest.fixture(scope="module")
+def tokens_and_ids():
+    # Register users (ignore conflict)
+    for user in [USER_ADMIN, USER_A, USER_B]:
+        requests.post(f"{BASE_URL}/users/", json=user)
+
+    # Login all users
+    tokens = {}
+    ids = {}
+    for user in [USER_ADMIN, USER_A, USER_B]:
+        r = requests.post(f"{BASE_URL}/auth/login", json={"email": user["email"], "password": user["password"]})
+        assert r.status_code == 200
+        tokens[user["email"]] = r.json()["access_token"]
+
+    # Get all users to get ids
+    r = requests.get(f"{BASE_URL}/users/")
+    assert r.status_code == 200
+    all_users = r.json()
+    for user in [USER_ADMIN, USER_A, USER_B]:
+        user_id = next(u["id"] for u in all_users if u["email"] == user["email"])
+        ids[user["email"]] = user_id
+
+    return tokens, ids
+
+def auth_headers(token):
+    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+def test_admin_can_create_user(tokens_and_ids):
+    tokens, _ = tokens_and_ids
+    new_user = {
+        "email": "newuser@example.com",
+        "password": "NewUserPass123",
+        "first_name": "New",
+        "last_name": "User"
+    }
+    # Admin creates new user
+    r = requests.post(f"{BASE_URL}/users/", json=new_user, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 201 or r.status_code == 409  # 409 if already exists
+
+    # Non-admin cannot create user
+    r = requests.post(f"{BASE_URL}/users/", json=new_user, headers=auth_headers(tokens[USER_A["email"]]))
+    assert r.status_code == 403
+
+def test_admin_can_modify_any_user(tokens_and_ids):
+    tokens, ids = tokens_and_ids
+
+    # Admin changes email of User A
+    update = {"email": "updated_usera@mail.com"}
+    r = requests.put(f"{BASE_URL}/users/{ids[USER_A['email']]}", json=update, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 200
+    assert r.json()["email"] == "updated_usera@mail.com"
+
+    # User B tries to change User A's email (forbidden)
+    update2 = {"email": "hacked@mail.com"}
+    r = requests.put(f"{BASE_URL}/users/{ids[USER_A['email']]}", json=update2, headers=auth_headers(tokens[USER_B["email"]]))
+    assert r.status_code == 403
+
+def test_admin_can_add_and_modify_amenities(tokens_and_ids):
+    tokens, _ = tokens_and_ids
+
+    amenity_data = {"name": "Test Pool"}
+    # Admin adds amenity
+    r = requests.post(f"{BASE_URL}/amenities/", json=amenity_data, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 201
+    amenity_id = r.json()["id"]
+
+    # Admin modifies amenity
+    update = {"name": "Updated Pool"}
+    r = requests.put(f"{BASE_URL}/amenities/{amenity_id}", json=update, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 200
+    assert r.json()["name"] == "Updated Pool"
+
+    # Non-admin cannot add amenity
+    r = requests.post(f"{BASE_URL}/amenities/", json=amenity_data, headers=auth_headers(tokens[USER_A["email"]]))
+    assert r.status_code == 403
+
+    # Non-admin cannot modify amenity
+    r = requests.put(f"{BASE_URL}/amenities/{amenity_id}", json=update, headers=auth_headers(tokens[USER_A["email"]]))
+    assert r.status_code == 403
+
+def test_admin_bypass_ownership_place_review(tokens_and_ids):
+    tokens, ids = tokens_and_ids
+
+    # User A creates place
+    place_data = {"title": "AdminTest Place", "price": 100, "latitude": 10, "longitude": 10}
+    r = requests.post(f"{BASE_URL}/places/", json=place_data, headers=auth_headers(tokens[USER_A["email"]]))
+    assert r.status_code == 201
+    place_id = r.json()["id"]
+
+    # User B tries to modify place (should fail)
+    update = {"title": "UserB Hacked Place"}
+    r = requests.put(f"{BASE_URL}/places/{place_id}", json=update, headers=auth_headers(tokens[USER_B["email"]]))
+    assert r.status_code == 403
+
+    # Admin modifies place (should succeed)
+    update2 = {"title": "Admin Changed Place"}
+    r = requests.put(f"{BASE_URL}/places/{place_id}", json=update2, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 200
+    assert r.json()["title"] == "Admin Changed Place"
+
+    # User B creates review on place
+    review_data = {"place_id": place_id, "text": "Good Place", "rating": 4}
+    r = requests.post(f"{BASE_URL}/reviews/", json=review_data, headers=auth_headers(tokens[USER_B["email"]]))
+    assert r.status_code == 201
+    review_id = r.json()["id"]
+
+    # User A tries to delete review (should fail)
+    r = requests.delete(f"{BASE_URL}/reviews/{review_id}", headers=auth_headers(tokens[USER_A["email"]]))
+    assert r.status_code == 403
+
+    # Admin deletes review (should succeed)
+    r = requests.delete(f"{BASE_URL}/reviews/{review_id}", headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code in (200, 204)
+
