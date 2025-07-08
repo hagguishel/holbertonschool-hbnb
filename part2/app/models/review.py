@@ -11,6 +11,7 @@ class Review(BaseModel):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
 
     place = db.relationship('Place', back_populates='reviews')
+    user = db.relationship('User', back_populates='reviews')
 
     @validates('text')
     def validate_text(self, key, value):
@@ -33,6 +34,6 @@ class Review(BaseModel):
             'id': self.id,
             'text': self.text,
             'rating': self.rating,
-            'place_id': self.place.id,
-            'user_id': self.user.id
+            'place_id': self.place_id,
+            'user_id': self.user_id
         }

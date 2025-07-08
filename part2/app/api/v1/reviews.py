@@ -44,7 +44,9 @@ class ReviewList(Resource):
                 return{'error': 'You have already reviewed this place'}, 400
         try:
             new_review = facade.create_review(review_data)
-            return new_review.to_dict(), 201
+            res = new_review.to_dict()
+            res["message"] = "Review created successfully"
+            return res, 201
         except Exception as e:
             return {'error': str(e)}, 400
 
@@ -89,7 +91,10 @@ class ReviewResource(Resource):
 
         try:
             facade.update_review(review_id, review_data)
-            return {'message': 'Review updated successfully'}, 200
+            updated_review = facade.get_review(review_id)
+            res = updated_review.to_dict()
+            res["message"] = "Review updated successfully"
+            return res, 200
         except Exception as e:
             return {'error': str(e)}, 400
 

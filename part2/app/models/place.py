@@ -20,6 +20,7 @@ class Place(BaseModel):
 
     amenities = db.relationship('Amenity', secondary=amenities_places, backref='places')
     reviews = db.relationship('Review', back_populates='place', cascade='all, delete-orphan')
+    owner = db.relationship('User', back_populates='places',overlaps="places,owner")
 
     @validates('title')
     def validate_title(self, key, value):
@@ -79,7 +80,7 @@ class Place(BaseModel):
     def to_dict(self):
         d = super().to_dict()
         d.update({
-            'name': self.title,
+            'title': self.title,
             'description': self.description,
             'price': self.price,
             'latitude': self.latitude,

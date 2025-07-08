@@ -83,13 +83,17 @@ class UserResource(Resource):
         email = user_data.get('email')
         if email:
             existing_user = facade.get_user_by_email(email)
+
             if existing_user and existing_user.id != user_id:
                 return {'error': 'Email already in use'}, 400
 
 
         try:
-            updated_user = facade.update_user(user_id, user_data, is_admin)
-            return {'id': updated_user.id, 'message': 'User updated successfully'}, 200
+            updated_user = facade.update_user(user_id, user_data)
+            res = updated_user.to_dict()
+            res ["message"] = "User updated successfully"
+            return res, 200
+
         except Exception as e:
             return {'error': str(e)}, 400
 
