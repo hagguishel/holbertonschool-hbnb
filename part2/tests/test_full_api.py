@@ -144,21 +144,14 @@ def test_password_is_hashed(create_users_and_tokens):
     for user_id in (ids["A"]["id"], ids["B"]["id"]):
         r = requests.get(f"{BASE_URL}/users/{user_id}")
         assert "password" not in r.json()
+
 def test_sqlalchemy_repository_structure():
-    """
-    Teste la structure de la classe SQLAlchemyRepository :
-    - doit avoir les méthodes attendues
-    - doit être instanciable avec un modèle fictif
-    """
-    # L'import est volontairement dans la fonction pour ne PAS planter les autres tests s'il manque quelque chose
     from app.persistence.repository import SQLAlchemyRepository
 
-    # Crée une classe fictive simulant un modèle SQLAlchemy
     class DummyModel:
         pass
 
     repo = SQLAlchemyRepository(DummyModel)
-    # Vérifie que les méthodes existent
     assert hasattr(repo, "add")
     assert hasattr(repo, "get")
     assert hasattr(repo, "get_all")
@@ -168,46 +161,33 @@ def test_sqlalchemy_repository_structure():
     assert repo.model == DummyModel
 
 def test_facade_structure():
-    """
-    Vérifie que la Facade utilise bien SQLAlchemyRepository pour les users.
-    """
     from app.services.facade import HBnBFacade
 
     facade = HBnBFacade()
     assert hasattr(facade, "user_repo")
+
 def test_repository_get_by_attribute_unique():
-    """
-    Teste SQLAlchemyRepository.get_by_attribute pour un attribut unique (ex: email).
-    Utilise le contexte Flask pour éviter l'erreur 'Working outside of application context'.
-    """
     from app import create_app, db
     from app.persistence.repository import SQLAlchemyRepository
     from app.models.user import User
 
-    # Crée l'instance Flask avec la configuration de développement
     app = create_app()
     with app.app_context():
-        # Remise à zéro de la base (attention, en prod on ne fait pas ça !)
         db.drop_all()
         db.create_all()
 
         repo = SQLAlchemyRepository(User)
-
         user1 = User(first_name="A", last_name="A", email="a@b.c", password="password123")
         repo.add(user1)
 
-        # On doit retrouver l'utilisateur par email
         found = repo.get_by_attribute("email", "a@b.c")
         assert found is not None
         assert found.email == "a@b.c"
 
-        # Si l'email n'existe pas, doit renvoyer None
         not_found = repo.get_by_attribute("email", "not@found.com")
         assert not_found is None
+
 def test_base_model_sqlalchemy_columns():
-    """
-    Vérifie que le modèle BaseModel possède bien les colonnes SQLAlchemy attendues (héritées par User).
-    """
     from app.models.user import User
     user = User(first_name="Jean", last_name="Dupont", email="testuser@email.com", password="Password123")
     assert hasattr(user, "id")
@@ -215,9 +195,6 @@ def test_base_model_sqlalchemy_columns():
     assert hasattr(user, "updated_at")
 
 def test_user_model_columns_and_constraints():
-    """
-    Vérifie la présence des colonnes User, la contrainte d'unicité email, et les valeurs par défaut.
-    """
     from app.models.user import User
     from app import create_app, db
 
@@ -230,7 +207,6 @@ def test_user_model_columns_and_constraints():
         db.session.add(user)
         db.session.commit()
 
-        # Unicité email : une nouvelle tentative doit lever une exception
         from sqlalchemy.exc import IntegrityError
         user2 = User(first_name="Autre", last_name="Nom", email="unique@email.com", password="Motdepasse123")
         user2.hash_password("Motdepasse123")
@@ -240,11 +216,7 @@ def test_user_model_columns_and_constraints():
         db.session.rollback()
 
 def test_user_repository_add_and_get_by_email():
-    """
-    Vérifie UserRepository : ajout et récupération par email.
-    """
     from app.persistence.user_repository import UserRepository
-
     from app.models.user import User
     from app import create_app, db
 
@@ -265,9 +237,6 @@ def test_user_repository_add_and_get_by_email():
         assert not_found is None
 
 def test_user_facade_create_and_retrieve():
-    """
-    Vérifie la création et la récupération d'un user via le HBnBFacade.
-    """
     from app.services.facade import HBnBFacade
     from app import create_app, db
 
@@ -288,7 +257,6 @@ def test_user_facade_create_and_retrieve():
         user_from_db = facade.get_user_by_email(data["email"])
         assert user_from_db is not None
         assert user_from_db.first_name == "Façade"
-import pytest
 
 def test_user_place_relationship():
     """Un User peut avoir plusieurs Place, chaque Place a un user_id."""
@@ -309,7 +277,7 @@ def test_user_place_relationship():
         db.session.commit()
 
         assert place.user_id == user.id
-        assert place.user == user
+        assert place.owner == user          # Corrected here to use 'owner' instead of 'user'
         assert place in user.places
 
 def test_place_review_relationship():
@@ -425,4 +393,3 @@ def test_cascade_delete_reviews():
         db.session.commit()
 
         assert Review.query.filter_by(id=review.id).first() is None
-
