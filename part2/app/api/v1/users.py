@@ -3,7 +3,15 @@ from app.services import facade
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from flask import request
 
-api = Namespace('users', description='User operations')
+authorizations = {
+        'Bearer Auth': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'Authorization',
+        'description': "Enter 'Bearer' followed by your JWT token"
+    }
+}
+api = Namespace('users', description='User operations', authorizations=authorizations, security='Bearer Auth')
 
 # Define the user model for input validation and documentation
 user_model = api.model('User', {
