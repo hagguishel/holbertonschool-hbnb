@@ -2,7 +2,6 @@ from flask import Flask
 from flask_restx import Api
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
-from config import config
 from flask_jwt_extended import JWTManager
 
 bcrypt = Bcrypt()

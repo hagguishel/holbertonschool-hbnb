@@ -184,7 +184,8 @@ curl -X POST http://127.0.0.1:5000/api/v1/users \
            "email": "maxence.potier@example.com",
            "password": "securepassword123"
          }'
-
+```
+```bash
 #### ✅ Auth/Login 
 
 curl -X POST http://127.0.0.1:5000/api/v1/auth/login \
@@ -199,9 +200,10 @@ Your backend should return a JSON with a JWT access token, for example:
 {
   "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
 }
+```
 
 #### 🔐 Example of a protected request using the token:
-
+```bash
 curl -X GET http://127.0.0.1:5000/api/v1/users \
      -H "Authorization: Bearer <access_token>"
 ```

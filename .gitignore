@@ -27,3 +27,4 @@ dist/
 
 # Cache pip
 pip-wheel-metadata/
+part2/instance/development.db
