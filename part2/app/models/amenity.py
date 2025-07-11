@@ -1,24 +1,33 @@
-from .basemodel import BaseModel
-from app import db
-from sqlalchemy.orm import validates
+#!/usr/bin/python3
+from app.models.basemodel import BaseModel
+
 
 class Amenity(BaseModel):
-	__tablename__ = 'amenities'
+    def __init__(self, name):
+        super().__init__()
+        if not name:
+            raise ValueError("Amenity name cannot be empty")
+        self.name = name
 
-	name = db.Column(db.String(50), nullable=False, unique=True)
+    @property
+    def name(self):
+        return self.__name
 
-	@validates('name')
-	def validate_name(self, key, value):
-		if not isinstance(value, str):
-			raise TypeError("Name must be a string")
-		if not value:
-			raise ValueError("Name cannot be empty")
-		if len(value) > 50:
-			raise ValueError("Name must be less than or equal to 50 characters")
-		return value
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError("name must be a string")
+        if len(value) > 50:
+            raise ValueError("Required, maximum length of 50 characters.")
 
-	def to_dict(self):
-		return {
-			'id': self.id,
-			'name': self.name
-		}
+        self.__name = value
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+        return data

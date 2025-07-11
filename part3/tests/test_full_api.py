@@ -458,13 +458,14 @@ def test_admin_can_create_user(tokens_and_ids):
         "first_name": "New",
         "last_name": "User"
     }
-    # Admin creates new user
-    r = requests.post(f"{BASE_URL}/users/", json=new_user, headers=auth_headers(tokens[USER_ADMIN["email"]]))
-    assert r.status_code == 201 or r.status_code == 409  # 409 if already exists
+    # Admin crée un utilisateur via /users/admin/
+    r = requests.post(f"{BASE_URL}/users/admin/", json=new_user, headers=auth_headers(tokens[USER_ADMIN["email"]]))
+    assert r.status_code == 201 or r.status_code == 409  # 409 si déjà existant
 
-    # Non-admin cannot create user
-    r = requests.post(f"{BASE_URL}/users/", json=new_user, headers=auth_headers(tokens[USER_A["email"]]))
+    # Non-admin ne peut PAS créer un utilisateur admin via /users/admin/
+    r = requests.post(f"{BASE_URL}/users/admin/", json=new_user, headers=auth_headers(tokens[USER_A["email"]]))
     assert r.status_code == 403
+
 
 def test_admin_can_modify_any_user(tokens_and_ids):
     tokens, ids = tokens_and_ids

@@ -1,257 +1,217 @@
-# HBnB RESTful API - Part 2
+# HBnB API Project
 
-## ✨ Description
-
-HBnB is a modular RESTful API built with Flask. It manages users, places, amenities, and reviews. This application is part two of the Holberton School HBnB project, focused on the presentation and business logic layers.
+This project is a modular and scalable RESTful API for the HBnB platform, built using **Flask** and **Flask-RESTx**. It follows a clean architecture with separation of concerns between the API (presentation layer), business logic, and persistence.
 
 ---
 
-## 🛂 Main Features
-
-* User management (registration, update, roles)
-* Creation and display of places
-* Amenity management (many-to-many)
-* Adding reviews and ratings
-* Relational MySQL database
-* Automated testing with Pytest
-
----
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
-part2/
+hbnb/
 ├── app/
-│   ├── api/                # REST endpoints by version
-│   ├── models/             # SQLAlchemy models
-│   ├── persistence/        # Repository abstraction
-│   ├── services/           # Business logic (facade)
-│   └── test_models/        # Unit tests for models
-├── test_database.py        # SQL integration tests
-├── hbnb_db.sql             # Database schema
-├── test.sql                # Test data
-├── run.py                  # Application entry point
+│   ├── __init__.py               # Initializes Flask app and API
+│   ├── api/                      # API routes (organized by version)
+│   │   ├── __init__.py
+│   │   └── v1/
+│   │       ├── __init__.py
+│   │       ├── users.py          # User-related endpoints
+│   │       ├── places.py         # Place-related endpoints
+│   │       ├── reviews.py        # Review-related endpoints
+│   │       └── amenities.py      # Amenity-related endpoints
+│   ├── models/                   # Business logic / domain models
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── place.py
+│   │   ├── review.py
+│   │   └── amenity.py
+│   ├── services/                 # Facade pattern for orchestration
+│   │   ├── __init__.py
+│   │   └── facade.py
+│   └── repositories/            # In-memory repository (replaceable by DB)
+│       ├── __init__.py
+│       └── in_memory.py
+├── run.py                        # Entry point to run the app
+├── config.py                     # App configuration
+├── requirements.txt              # List of Python dependencies
+└── README.md                     # Project documentation
 ```
 
 ---
-## 🧱 Technologies Used
 
-Python 3.12
+## 📬 Endpoints Overview
 
-Flask + Flask-RESTx
+| Resource  | Endpoint                  | Methods       | Description                    |
+|-----------|---------------------------|---------------|--------------------------------|
+| Users     | `/api/v1/users/`          | GET, POST     | List or create users           |
+| Users     | `/api/v1/users/<id>`      | GET, PUT      | Retrieve or update a user      |
+| Places    | `/api/v1/places/`         | GET, POST     | List or create places          |
+| Reviews   | `/api/v1/reviews/`        | GET, POST     | List or create reviews         |
+| Reviews   | `/api/v1/reviews/<id>`    | GET, DELETE   | Retrieve or delete a review    |
+| Amenities | `/api/v1/amenities/`      | GET, POST     | List or create amenities       |
 
-PyMySQL for SQL tests
+## ✅ Features
 
-SQLite for quick testing, MySQL for production
-
-Pytest for unit tests
-
-Raw SQL for schema definition
-
----
-
-## 🎓 SQLAlchemy Models
-
-### 👤 User
-
-```python
-first_name: str (max 50)
-last_name: str (max 50)
-email: str (unique, max 120)
-password_hash: str
-is_admin: bool (default False)
-```
-
-* Passwords are hashed using `Flask-Bcrypt`
-* `verify_password()` checks credentials
-
-### 🏠 Place
-
-```python
-title: str (max 128)
-description: str (max 500)
-price: float
-latitude, longitude: float
-user_id: FK(User.id)
-```
-
-* Many-to-many relationship with `Amenity`
-* One-to-many relationship with `Review`
-
-### 🏨 Amenity
-
-```python
-name: str (unique, max 50)
-```
-
-### 📝 Review
-
-```python
-text: str (500)
-rating: int (1-5)
-place_id: FK(Place.id)
-user_id: FK(User.id)
-```
-
-* Unique constraint: (user\_id, place\_id)
+- Flask-based REST API with clean modular structure
+- In-memory data storage (easily swappable with database)
+- CRUD endpoints for users, places, reviews, and amenities
+- Centralized facade layer for orchestrating business logic
+- Integrated Swagger UI documentation (`/api/v1/`)
 
 ---
 
-## 🧩 Entity-Relationship Diagram
+## ⚙️ Installation
 
-![ER Diagram](er_diagram.png)
-
-
----
-
-## 📊 SQL Query Examples
-
-```sql
-SELECT * FROM User;
-SELECT * FROM Place WHERE price > 200;
-```
----
-
-## 🤖 Sample Endpoints
+### 1. Clone the repository
 
 ```bash
-GET /api/v1/places/<place_id>
-POST /api/v1/users
-```
----
-
-## 🧰 Business Logic (Facade)
-
-Located in `app/services/facade.py`, the `HBnBFacade` class centralizes operations:
-
-* Creating and retrieving entities
-* Linking models (add review to a place, etc.)
-* Integrity checks before creation (user/place exists)
-
----
-
-## 🔧 Running the Project
-
-The `run.py` file sets up the Flask app and database:
-
-```python
-app = create_app()
-with app.app_context():
-    db.create_all()
-app.run(debug=True)
-```
-
-```bash
-git clone https://github.com/votre-utilisateur/holbertonschool-hbnb.git
+git clone https://github.com/JulienPul/holbertonschool-hbnb.git
 cd holbertonschool-hbnb/part2
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
+---
+
+## 🚀 Running the App
+
 ```bash
-source venv/bin/activate
-mysql -u root -p < hbnb_db.sql
-mysql -u root -p hbnb_db < test.sql
-python run.py
+python3 run.py
+```
+Flask-RESTx auto-generates a Swagger UI interface
+Open your browser at:  
+👉 [http://127.0.0.1:5000/api/v1/](http://127.0.0.1:5000/api/v1/)
+
+You will see the **Swagger UI**, auto-generated by Flask-RESTx.
+Use it to explore and test the available endpoints with schemas and example responses.
+---
+
+## 🔧 Configuration
+
+The file `config.py` defines application settings. You can switch between environments by changing:
+
+```python
+config = {
+    'development': DevelopmentConfig,
+    'default': DevelopmentConfig
+}
 ```
 
 ---
 
-## 📚 Tests
+## 🧠 Business Logic Layer
 
-### 🔬 Unit Tests with Pytest
+The models/ directory defines core domain entities. Each class encapsulates its own validation rules and behavior.
 
-File: `test_database.py`
+User
+Represents a user of the platform.
 
-* Checks for required tables
-* Verifies admin user presence
-* Validates foreign keys and constraints
+```python
+from app.models.user import User
+
+user = User("Julien", "Pulon", "julien@example.com")
+print(user.to_dict())
+```
+
+Review
+Represents a review left by a user on a place.
+
+```python
+from app.models.place import Place
+
+place = Place("Villa", "Beachfront house", 200.0, 43.6, 1.5, user)
+```
+
+Review
+Represents a review left by a user on a place.
+
+```python
+from app.models.review import Review
+
+review = Review("Great!", 5, place, user)
+```
+
+Amenity
+Represents an amenity (e.g., WiFi, Pool) associated with a place.
+
+```python
+from app.models.amenity import Amenity
+
+wifi = Amenity("WiFi")
+place.add_amenity(wifi)
+```
+
+
+## 📌 Notes
+
+- The app currently uses an **in-memory repository** (`InMemoryRepository`)  
+- A real database (e.g., PostgreSQL with SQLAlchemy) will be added in future versions  
+- The `HBnBFacade` class acts as the **single point of access** to logic and storage
+
+---
+
+## 🧪 Testing
+
+### Automated Tests
 
 ```bash
-pytest test_database.py
+pytest
 ```
+Complete pytest test file  for api and models at part2/app/api/test_user.py
+Make sure `run.py` and `create_app()` are correctly configured to accept the in-memory repository.
+
 ### Manual Tests with cURL
 
 #### ✅ Create a User
 
 ```bash
-curl -X POST http://127.0.0.1:5000/api/v1/users \
-     -H "Content-Type: application/json" \
-     -d '{
-           "first_name": "Maxence",
-           "last_name": "Potier",
-           "email": "maxence.potier@example.com",
-           "password": "securepassword123"
-         }'
+curl -X POST http://127.0.0.1:5000/api/v1/users/ -H "Content-Type: application/json" -d '{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com"
+}'
 ```
+
+#### ❌ Invalid Email
+
 ```bash
-#### ✅ Auth/Login 
-
-curl -X POST http://127.0.0.1:5000/api/v1/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{
-           "email": "maxence.potier@example.com",
-           "password": "securepassword123"
-         }'
-
-Your backend should return a JSON with a JWT access token, for example:
-
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
-}
-```
-
-#### 🔐 Example of a protected request using the token:
-```bash
-curl -X GET http://127.0.0.1:5000/api/v1/users \
-     -H "Authorization: Bearer <access_token>"
-```
----
-
-## 📊 SQL Query Examples
-
-```sql
-SELECT * FROM User;
-SELECT * FROM Place WHERE price > 50;
+curl -X POST http://127.0.0.1:5000/api/v1/users/ -H "Content-Type: application/json" -d '{
+  "first_name": "",
+  "last_name": "Doe",
+  "email": "notanemail"
+}'
 ```
 
 ---
 
-## 📓 Requirements
+## 📚 Technologies
 
-```txt
-Flask
-Flask-Bcrypt
-SQLAlchemy
-pymysql
-pytest
-```
-
-Install dependencies with:
-
-```bash
-pip install -r requirements.txt
-```
+- Python 3.8+
+- Flask
+- Flask-RESTx
+- REST principles
+- Clean architecture
 
 ---
 
-## 🎉 Authors
+## 🧾 License
 
-Project developed as part of Holberton School.
+This project is part of the Holberton School curriculum and is intended for educational purposes only.
 
-
-##Web & Mobile Developers:##
-
+## Authors
+developpers :
 Haggui Razafimaitso
 github: https://github.com/hagguishel
-
 Julien Pulon
 github: https://github.com/JulienPul
 updated: 20/06/2025
-
----
-
-## 📃 License
-
-his project is part of the Holberton School curriculum and is intended for educational purposes only.

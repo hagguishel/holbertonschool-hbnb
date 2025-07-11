@@ -1,96 +1,107 @@
-from .basemodel import BaseModel
-from .user import User
-from app import db
-from sqlalchemy.orm import validates
+#!/usr/bin/python3
+from app.models.basemodel import BaseModel
+from app.models.user import User
+from app.models.review import Review
 
-amenities_places = db.Table(
-    'amenities_places',
-    db.Column('place_id', db.String(36), db.ForeignKey('places.id'), primary_key=True),
-    db.Column('amenity_id', db.String(36), db.ForeignKey('amenities.id'), primary_key=True)
-    )
+
 class Place(BaseModel):
-    __tablename__ = 'places'
+    def __init__(self, title, description, price, latitude, longitude, owner):
+        super().__init__()
 
-    title = db.Column(db.String(128), nullable=False)
-    description = db.Column(db.String(500), nullable=True)
-    price = db.Column(db.Float, nullable=False)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+        self.title = title
+        self.description = description
+        self.price = float(price)
+        self.latitude = float(latitude)
+        self.longitude = float(longitude)
+        self.owner = owner
+        self.amenities = []
+        self.reviews = []
 
-    amenities = db.relationship('Amenity', secondary=amenities_places, backref='places')
-    reviews = db.relationship('Review', back_populates='place', cascade='all, delete-orphan')
-    owner = db.relationship('User', back_populates='places',overlaps="places,owner")
+    @property
+    def title(self):
+        return self.__title
 
-    @validates('title')
-    def validate_title(self, key, value):
-        if not isinstance(value, str):
-            raise TypeError("Title must be a string")
-        if not value.strip():
-            raise ValueError("Title cannot be empty")
-        if len(value) > 100:
-            raise ValueError("Title must be at most 100 characters")
-        return value
+    @title.setter
+    def title(self, value):
+        if not isinstance(value, str) or not value or len(value) > 100:
+            raise ValueError(
+                "title is required and must be a string with max 100 characters."
+            )
+        self.__title = value
 
-    @validates('description')
-    def validate_description(self, key, value):
-        if value is not None and not isinstance(value, str):
-            raise TypeError("Description must be a string or None")
-        if value and len(value) > 500:
-            raise ValueError("Description must be at most 500 characters")
-        return value
+    @property
+    def description(self):
+        return self.__description
 
-    @validates('price')
-    def validate_price(self, key, value):
-        if not isinstance(value, (int, float)):
-            raise TypeError("Price must be a number")
-        if value < 0:
-            raise ValueError("Price must be positive.")
-        return value
+    @description.setter
+    def description(self, value):
+        if not isinstance(value, str) or len(value) > 500:
+            raise ValueError("description must be a string with max 500 characters.")
+        self.__description = value
 
-    @validates('latitude')
-    def validate_latitude(self, key, value):
-        if not isinstance(value, (float, int)):
-            raise TypeError("Latitude must be a number")
-        if not -90 <= value <= 90:
-            raise ValueError("Latitude must be between -90 and 90.")
-        return value
+    @property
+    def price(self):
+        return self.__price
 
-    @validates('longitude')
-    def validate_longitude(self, key, value):
-        if not isinstance(value, (float, int)):
-            raise TypeError("Longitude must be a number")
-        if not -180 <= value <= 180:
-            raise ValueError("Longitude must be between -180 and 180.")
-        return value
+    @price.setter
+    def price(self, value):
+        if not isinstance(value, (int, float)) or value <= 0:
+            raise ValueError("price must be a positive number.")
+        self.__price = value
 
+    @property
+    def latitude(self):
+        return self.__latitude
+
+    @latitude.setter
+    def latitude(self, value):
+        if not isinstance(value, (int, float)) or not (-90.0 <= value <= 90.0):
+            raise ValueError("latitude must be between -90.0 and 90.0.")
+        self.__latitude = value
+
+    @property
+    def longitude(self):
+        return self.__longitude
+
+    @longitude.setter
+    def longitude(self, value):
+        if not isinstance(value, (int, float)) or not (-180.0 <= value <= 180.0):
+            raise ValueError("longitude must be between -180.0 and 180.0.")
+        self.__longitude = value
+
+    @property
+    def owner(self):
+        return self.__owner
+
+    @owner.setter
+    def owner(self, value):
+        if not isinstance(value, User):
+            raise ValueError("owner must be a valid User instance.")
+        self.__owner = value
 
     def add_review(self, review):
         """Add a review to the place."""
         self.reviews.append(review)
-
-    def delete_review(self, review):
-        """Add an amenity to the place."""
-        self.reviews.remove(review)
 
     def add_amenity(self, amenity):
         """Add an amenity to the place."""
         self.amenities.append(amenity)
 
     def to_dict(self):
-        d = super().to_dict()
-        d.update({
-            'title': self.title,
-            'description': self.description,
-            'price': self.price,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'owner_id': self.user_id
-        })
-        return d
-
-    def to_dict_full(self):
-        d = self.to_dict()
-        d['amenities'] = [a.to_dict() for a in self.amenities]
-        d['reviews'] = [r.to_dict() for r in self.reviews]
-        return d
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "owner": {
+                "id": self.owner.id,
+                "first_name": self.owner.first_name,
+                "last_name": self.owner.last_name,
+                "email": self.owner.email,
+            },
+            "amenities": [{"id": a.id, "name": a.name} for a in self.amenities],
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
