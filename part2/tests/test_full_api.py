@@ -216,7 +216,7 @@ def test_user_model_columns_and_constraints():
         db.session.rollback()
 
 def test_user_repository_add_and_get_by_email():
-    from app.persistence.user_repository import UserRepository
+    from app.services.repositories.user_repository import UserRepository  # ✅ chemin corrigé
     from app.models.user import User
     from app import create_app, db
 
@@ -235,6 +235,7 @@ def test_user_repository_add_and_get_by_email():
 
         not_found = repo.get_user_by_email("doesnotexist@test.com")
         assert not_found is None
+
 
 def test_user_facade_create_and_retrieve():
     from app.services.facade import HBnBFacade
