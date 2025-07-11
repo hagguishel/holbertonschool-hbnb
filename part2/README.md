@@ -1,40 +1,75 @@
-# HBnB API Project
+# HBnB RESTful API - Part 3
 
-This project is a modular and scalable RESTful API for the HBnB platform, built using **Flask** and **Flask-RESTx**. It follows a clean architecture with separation of concerns between the API (presentation layer), business logic, and persistence.
+## ✨ Description
+
+HBnB is a modular RESTful API built with Flask. It manages users, places, amenities, and reviews. This application is part two of the Holberton School HBnB project, focused on the presentation and business logic layers.
+
+---
+
+## 🛂 Main Features
+
+* User management (registration, update, roles)
+* Creation and display of places
+* Amenity management (many-to-many)
+* Adding reviews and ratings
+* Relational MySQL database
+* Automated testing with Pytest
 
 ---
 
 ## 📁 Project Structure
 
 ```
-hbnb/
-├── app/
-│   ├── __init__.py               # Initializes Flask app and API
-│   ├── api/                      # API routes (organized by version)
+part3/
+.
+├── README.md
+├── app
+│   ├── __init__.py
+│   ├── api
 │   │   ├── __init__.py
-│   │   └── v1/
+│   │   └── v1
 │   │       ├── __init__.py
-│   │       ├── users.py          # User-related endpoints
-│   │       ├── places.py         # Place-related endpoints
-│   │       ├── reviews.py        # Review-related endpoints
-│   │       └── amenities.py      # Amenity-related endpoints
-│   ├── models/                   # Business logic / domain models
+│   │       ├── amenities.py
+│   │       ├── auth.py
+│   │       ├── places.py
+│   │       ├── reviews.py
+│   │       └── users.py
+│   ├── config.py
+│   ├── models
 │   │   ├── __init__.py
-│   │   ├── user.py
+│   │   ├── amenity.py
+│   │   ├── basemodel.py
 │   │   ├── place.py
 │   │   ├── review.py
-│   │   └── amenity.py
-│   ├── services/                 # Facade pattern for orchestration
+│   │   └── user.py
+│   ├── persistence
 │   │   ├── __init__.py
-│   │   └── facade.py
-│   └── repositories/            # In-memory repository (replaceable by DB)
-│       ├── __init__.py
-│       └── in_memory.py
-├── run.py                        # Entry point to run the app
-├── config.py                     # App configuration
-├── requirements.txt              # List of Python dependencies
-└── README.md                     # Project documentation
-```
+│   │   └── repository.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── facade.py
+│   │   └── repositories
+│   │       ├── amenity_repository.py
+│   │       ├── place_repository.py
+│   │       ├── review_repository.py
+│   │       └── user_repository.py
+│   └── test_models
+│       ├── test_amenity.py
+│       ├── test_place.py
+│       ├── test_review.py
+│       └── test_user.py
+├── config.py
+├── er_diagram.png
+├── hbnb_db.sql
+├── instance
+│   └── development.db
+├── manual_review.py
+├── requirements.txt
+├── run.py
+├── test_database.py
+└── tests
+    └── test_full_api.py
+
 
 ---
 
@@ -132,40 +167,35 @@ from app.models.place import Place
 place = Place("Villa", "Beachfront house", 200.0, 43.6, 1.5, user)
 ```
 
-Review
-Represents a review left by a user on a place.
-
-```python
-from app.models.review import Review
-
-review = Review("Great!", 5, place, user)
+```bash
+git clone https://github.com/JulienPul/holbertonschool-hbnb.git
+cd holbertonschool-hbnb/part3
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Amenity
-Represents an amenity (e.g., WiFi, Pool) associated with a place.
-
-```python
-from app.models.amenity import Amenity
-
-wifi = Amenity("WiFi")
-place.add_amenity(wifi)
+```bash
+source venv/bin/activate
+mysql -u root -p < hbnb_db.sql
+mysql -u root -p hbnb_db < test.sql
+python run.py
 ```
-
-
-## 📌 Notes
-
-- The app currently uses an **in-memory repository** (`InMemoryRepository`)  
-- A real database (e.g., PostgreSQL with SQLAlchemy) will be added in future versions  
-- The `HBnBFacade` class acts as the **single point of access** to logic and storage
 
 ---
 
-## 🧪 Testing
+## 📚 Tests
 
-### Automated Tests
+### 🔬 Unit Tests with Pytest
+
+File: `test_database.py`
+
+* Checks for required tables
+* Verifies admin user presence
+* Validates foreign keys and constraints
 
 ```bash
-pytest
+PYTHONPATH=. pytest tests/test_full_api.py -v
 ```
 Complete pytest test file  for api and models at part2/app/api/test_user.py
 Make sure `run.py` and `create_app()` are correctly configured to accept the in-memory repository.
