@@ -8,46 +8,34 @@
     <link rel="icon" href="images/icon.png" type="image/png">
 </head>
 <body>
-  <header>
-        <img src="images/logo.png" alt="HBnB Evolution Logo" class="logo">
-         <nav>
-            <a href="login.html" class="login-button nav-link">Login</a>
-            <a href="index.html" class="login-button nav-link">Index</a>
-            <a href="place.html" class="login-button nav-link">Place</a>
-            <a href="add_review.html" class="login-button nav-link">Review</a>
+    <header>
+        <div class="logo">
+            <img src="images/logo.png" alt="App Logo" />
+            hbnb
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="login.html" class="login-button" id="login-link">Login</a>
         </nav>
-      </header>
+    </header>
+
     <main>
-      <h1 id="place-title">Loading title...</h1>
+         <section id="place-details"></section>
 
-        <section class="place-card" id="place-details">
-          <p><strong>Host:</strong> <span id="host-name">...</span></p>
-          <p><strong>Price per night:</strong> <span id="price-night">...</span></p>
-          <p><strong>Description:</strong> <span id="description">...</span></p>
-          <p><strong>Amenities:</strong> <span id="amenities">...</span></p>
-        </section>
-
-        <section id="reviews">
-          <h2>Reviews</h2>
-          <div id="reviews-container">
-            <p>No reviews yet.</p>
-          </div>
-          <!-- Place details will be populated dynamically -->
-        </section>
-
-        <section id="add-review">
-          <h2>Add a Review</h2>
-          <form id="review-form">
-            <label for="review-text">Review:</label>
-            <textarea id="review-text" name="review-text" required></textarea>
-            <button type="submit">Submit</button>
-          </form>
-          <!-- Reviews will be populated dynamically -->
-        </section>
+    <!-- Formulaire d'ajout de review -->
+    <section id="add-review" class="add-review" style="display: none;">
+      <h2>Add a Review</h2>
+      <form class="form" id="review-form">
+        <label for="review-text">Review:</label>
+        <textarea id="review-text" name="review-text" required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+    </section>
     </main>
-    <script src="scripts.js"></script>
-     <footer>
-      © 2024 HBnB Evolution. All rights reserved.
+
+    <footer>
+        <p>All rights reserved.</p>
     </footer>
+    <script src="scripts.js"></script>
 </body>
 </html>
