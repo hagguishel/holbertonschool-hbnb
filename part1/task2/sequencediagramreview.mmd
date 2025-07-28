@@ -1,0 +1,34 @@
+sequenceDiagram
+    participant User
+    participant API
+    participant BusinessLogic
+    participant Database
+
+    User->>API: DELETE /reviews/{id}
+    API->>BusinessLogic: Validate Request
+    
+    alt Invalid ID
+        BusinessLogic-->>API: 400 Bad Request
+        API-->>User: 400 Bad Request
+    else Valid ID
+        BusinessLogic->>Database: Check if Review Exists
+        Database-->>BusinessLogic: Review Found
+        BusinessLogic->>Database: Delete Review
+        Database-->>BusinessLogic: Deletion Successful
+        BusinessLogic-->>API: 204 No Content
+        API-->>User: 204 No Content
+    end
+
+    opt Review Not Found
+        BusinessLogic->>Database: Check if Review Exists
+        Database-->>BusinessLogic: Not Found
+        BusinessLogic-->>API: 404 Not Found
+        API-->>User: 404 Not Found
+    end
+
+    opt Internal Server Error
+        BusinessLogic->>Database: Delete Review
+        Database-->>BusinessLogic: Error
+        BusinessLogic-->>API: 500 Internal Server Error
+        API-->>User: 500 Internal Server Error
+    end

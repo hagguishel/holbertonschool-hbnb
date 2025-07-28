@@ -16,7 +16,7 @@ class Amenity(BaseModel):
 		if len(value) > 50:
 			raise ValueError("Name must be less than or equal to 50 characters")
 		return value
-
+	
 	def to_dict(self):
 		return {
 			'id': self.id,

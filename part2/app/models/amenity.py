@@ -1,33 +1,28 @@
-#!/usr/bin/python3
-from app.models.basemodel import BaseModel
-
+from .basemodel import BaseModel
 
 class Amenity(BaseModel):
-    def __init__(self, name):
-        super().__init__()
-        if not name:
-            raise ValueError("Amenity name cannot be empty")
-        self.name = name
+	def __init__(self, name):
+		super().__init__()	
+		self.name = name
 
-    @property
-    def name(self):
-        return self.__name
+	@property
+	def name(self):
+		return self.__name
 
-    @name.setter
-    def name(self, value):
-        if not isinstance(value, str):
-            raise TypeError("name must be a string")
-        if len(value) > 50:
-            raise ValueError("Required, maximum length of 50 characters.")
+	@name.setter
+	def name(self, value):
+		if not isinstance(value, str):
+			raise TypeError("Name must be a string")
+		if not value:
+			raise ValueError("Name cannot be empty")
+		super().is_max_length('Name', value, 50)
+		self.__name = value
 
-        self.__name = value
-
-    def to_dict(self):
-        data = {
-            "id": self.id,
-            "name": self.name,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
-
-        return data
+	def update(self, data):
+		return super().update(data)
+	
+	def to_dict(self):
+		return {
+			'id': self.id,
+			'name': self.name
+		}

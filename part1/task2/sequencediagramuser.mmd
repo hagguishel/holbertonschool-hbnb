@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant User
+    participant API
+    participant BusinessLogic
+    participant Database
+
+    User->>API: POST /register (Email, Password)
+    API->>BusinessLogic: Validate Request
+    
+    alt Invalid Data
+        BusinessLogic-->>API: 400 Bad Request
+        API-->>User: 400 Bad Request
+    else Email Exists
+        BusinessLogic->>Database: Check Email
+        Database-->>BusinessLogic: Email Exists
+        BusinessLogic-->>API: 409 Conflict
+        API-->>User: 409 Conflict
+    else Email Available
+        BusinessLogic->>Database: Save User
+        Database-->>BusinessLogic: Success
+        BusinessLogic-->>API: 201 Created
+        API-->>User: 201 Created
+    end
+
+    opt Internal Server Error
+        BusinessLogic->>Database: Save User
+        Database-->>BusinessLogic: Error
+        BusinessLogic-->>API: 500 Internal Server Error
+        API-->>User: 500 Internal Server Error
+    end

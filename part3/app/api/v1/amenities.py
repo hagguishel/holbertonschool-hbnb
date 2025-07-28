@@ -1,15 +1,8 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
-from flask_jwt_extended import jwt_required, get_jwt
 
-authorizations = {
-        'Bearer Auth': {
-        'type': 'apiKey',
-        'in': 'header',
-        'name': 'Authorization',
-        'description': "Enter 'Bearer' followed by your JWT token"
-    }
-}
+
 api = Namespace('amenities', description='Amenity operations')
 
 # Define the amenity model for input validation and documentation
@@ -22,15 +15,21 @@ class AmenityList(Resource):
     @api.expect(amenity_model)
     @api.response(201, 'Amenity successfully created')
     @api.response(400, 'Invalid input data')
+    @api.response(401, 'Unauthorized')
+    @api.response(403, 'Forbidden')
+    @api.doc(security='apikey')
     @jwt_required()
     def post(self):
+        current_user = get_jwt_identity()
+        if not current_user:
+            return {'error': 'Unauthorized'}, 401
+        is_admin = get_jwt()['is_admin']
+        print(current_user, is_admin)
+        if not is_admin:
+            return {'error': 'Forbidden'}, 403
         """Register a new amenity"""
-        claims = get_jwt()
-        if not claims.get("is_admin", False):
-            return {"error": "Admin privileges required"}, 403
-
         amenity_data = api.payload
-
+        
         existing_amenity = facade.amenity_repo.get_by_attribute('name', amenity_data.get('name'))
         if existing_amenity:
             return {'error': 'Invalid input data'}, 400
@@ -38,7 +37,7 @@ class AmenityList(Resource):
             new_amenity = facade.create_amenity(amenity_data)
             return new_amenity.to_dict(), 201
         except Exception as e:
-            return {'error': str(e)}, 400
+            return {'error': str(e).strip("'")}, 400
 
     @api.response(200, 'List of amenities retrieved successfully')
     def get(self):
@@ -62,23 +61,23 @@ class AmenityResource(Resource):
     @api.response(200, 'Amenity updated successfully')
     @api.response(404, 'Amenity not found')
     @api.response(400, 'Invalid input data')
+    @api.response(401, 'Unauthorized')
+    @api.response(403, 'Forbidden')
+    @api.doc(security='apikey')
     @jwt_required()
     def put(self, amenity_id):
-        claims = get_jwt()
-        if not claims.get("is_admin", False):
-            return {"error": "Admin privileges required"}, 403
+        current_user = get_jwt_identity()
+        if not current_user:
+            return {'error': 'Unauthorized'}, 401
+        is_admin = get_jwt()['is_admin']
+        if not is_admin:
+            return {'error': 'Forbidden'}, 403
         amenity_data = api.payload
         amenity = facade.get_amenity(amenity_id)
-
         if not amenity:
             return {'error': 'Amenity not found'}, 404
         try:
-            facade.update_amenity(amenity_id, amenity_data)
-            updated_amenity = facade.get_amenity(amenity_id)
-            res = updated_amenity.to_dict()
-            res["message"] = "Amenity updated successfully"
-            return res, 200
+            updated_amenity = facade.update_amenity(amenity_id, amenity_data)
+            return updated_amenity.to_dict(), 200
         except Exception as e:
-            return {'error': str(e)}, 400
-
-
+            return {'error': str(e).strip("'")}, 400

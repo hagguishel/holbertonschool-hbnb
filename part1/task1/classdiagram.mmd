@@ -1,0 +1,73 @@
+classDiagram
+class BaseModel {
+    <<abstract>>
+    +Id: UUID
+    +CreatedAt: datetime
+    +UpdatedAt: datetime
+    +save(): void
+    +delete(): void
+}
+
+class User {
+    +Firstname: string
+    +Lastname: string
+    -Email: string
+    -Password: string
+    -IsAdmin: bool
+    +getEmail(): string
+    +setEmail(email: string): void
+    +checkPassword(password: string): bool
+    +isAdmin(): bool
+    +setAdminStatus(isAdmin: bool): void
+    +getReviews(): List<Review>
+    +createPlace(): Place
+}
+
+class Place {
+    +Title: string
+    +Description: string
+    -Price: float
+    -Latitude: float
+    -Longitude: float
+    -Owner: UUID
+    +getOwner(): UUID
+    +getPrice(): float
+    +setPrice(price: float): void
+    +getCoordinates(): tuple<float, float>
+    +setCoordinates(latitude: float, longitude: float): void
+    +listAllPlaces(): List<Place>
+}
+
+class Review {
+    -Place: UUID
+    -User: UUID
+    -Rating: int
+    -Comment: string
+    +getRating(): int
+    +getComment(): string
+    +updateReview(newRating: int, newComment: string): void
+    +listReviewsForPlace(placeId: UUID): List<Review>
+}
+
+class Amenity {
+    +Name: string
+    +Description: string
+    +listAllAmenities(): List<Amenity>
+}
+
+class AmenitiesPlaces {
+    -PlaceId: UUID
+    -AmenityId: UUID
+}
+
+BaseModel <|-- User
+BaseModel <|-- Place
+BaseModel <|-- Amenity
+BaseModel <|-- Review
+
+Place "1" --* "1" User : OwnedBy
+Review "1" --* "1" User : WrittenBy
+Review "1" --* "0..*" Place : Contains
+
+Place "1" *-- "0..*" AmenitiesPlaces : Contains
+Amenity "1" *-- "0..*" AmenitiesPlaces : Contains

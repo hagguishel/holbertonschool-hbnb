@@ -1,0 +1,23 @@
+classDiagram
+    class PresentationLayer {
+        <<Interface>>
+        +UserController
+        +PlaceController
+        +AmenityController
+        +ReviewController
+    }
+    
+    class BusinessLogicLayer {
+        +UserModel
+        +PlaceModel
+        +AmenityModel
+        +ReviewModel
+    }
+    
+    class PersistenceLayer {
+        +DatabaseAccess
+        +Database
+    }
+
+    PresentationLayer --> BusinessLogicLayer : Facade Pattern
+    BusinessLogicLayer --> PersistenceLayer : Database Operations
