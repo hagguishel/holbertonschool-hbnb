@@ -7,43 +7,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
 
     if (loginForm) {
-      loginForm.addEventListener('submit', (event) => {
+      loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const errorElement = document.getElementById('login-error');
 
-        console.log('Email:', email);
-        console.log('Password:', password);
+        if (errorElement) {
+          errorElement.textContent = '';
+        }
 
-        fetch('http://localhost:5000/api/v1/auth/login', {
+        try {
+        const response = await fetch('http://localhost:5000/api/v1/auth/login', {
           method: 'POST',
           headers: {
-            'Content-type': 'application/json'
+            'Content-Type': 'application/json'
             },
-          body: JSON.stringify({
-            email: email,
-            password: password,
-            })
-          })
-          .then(response => {
+          body: JSON.stringify({ email, password })
+          });
+
             if (!response.ok) {
-              throw new Error('Login failed');
+              if (errorElement) {
+                errorElement.textContent = 'Login failed: Incorrect email or password.';
+              }
+              return;
             }
-            return response.json();
-          })
-          .then(data => {
+
+            const data = await response.json();
+
             console.log('Login success', data);
 
-            //stock on cookie
             document.cookie = `token=${data.access_token}; path=/`;
 
-            //user going to index.html
             window.location.href = 'index.html';
-          })
-          .catch(error => {
+
+          } catch (error) {
             console.error('Error during login:', error);
-            alert('Login failed: ' + error.message);
-          });
+            if (errorElement) {
+              errorElement.textContent = 'Login failed: An unexpected error occurred.';
+            }
+          }
         });
+        };
       }
-    });
+    );
