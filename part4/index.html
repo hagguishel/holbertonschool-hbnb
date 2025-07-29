@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>List of Places</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="images/icon.png" type="image/png" />
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="images/icon.png" type="image/png">
 </head>
 <body>
   <header>
     <div class="logo">
-      <img src="images/logo.png" alt="Application Logo" />
+      <img src="images/logo.png" alt="Application Logo">
     </div>
     <nav>
       <a href="index.html">Home</a>
@@ -22,6 +22,7 @@
     <h1>Available Places</h1>
 
     <section id="filter">
+      <h2 style="display: none;">filter Section</h2>
       <label for="price-filter"><strong>Max Price:</strong></label>
       <select id="price-filter">
         <option value="all">All</option>
@@ -33,6 +34,7 @@
     </section>
 
     <section id="places-list" class="places-container">
+      <h2 style="display: none;">Place List</h2>
       <!-- Places will be dynamically injected here -->
     </section>
   </main>
