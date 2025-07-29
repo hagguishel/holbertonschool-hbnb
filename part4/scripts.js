@@ -108,6 +108,7 @@ function displayPlaces(places) {
             <p>${place.description}</p>
             <p>Price: $${place.price}</p>
             <p>Location: ${place.latitude}, ${place.longitude}</p>
+            <a href="place.html?id=${place.id}" class="details-button">View Details</a>
         `;
 
         placesList.appendChild(div);
@@ -161,3 +162,40 @@ function displayPlaceDetails(place) {
         <ul>${(place.reviews || []).map(r => `<li>${r.user}: ${r.text}</li>`).join('')}</ul>
     `;
 }
+if (currentPage.includes('add_review.html')) {
+  const token = checkAuthentication();
+  const placeId = getPlaceIdFromURL();
+  const form = document.querySelector('.form');
+
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const reviewText = document.getElementById('review').value;
+      const rating = document.getElementById('rating').value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/v1/reviews/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            text: reviewText,
+            rating: rating,
+            place_id: placeId
+          })
+        });
+        if (response.ok) {
+          alert('✅ Review submitted!');
+        form.reset();
+      } else {
+        const data = await response.json();
+        alert('❌ Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Submit review error:', error);
+      alert('❌ Server error while submitting review.');
+    }
+  });
+}}

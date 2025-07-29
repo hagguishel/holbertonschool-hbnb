@@ -63,10 +63,11 @@ footer {
     text-align: center;
     margin: 20px;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 2px solid #ffcc00;
     border-radius: 10px;
-    background-color: #f5f5f5;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.1);
+    background-color: #fff;
+    box-shadow: 0 0 12px rgba(255, 0, 0, 0.2);
+    color: #111;
 }
 
 .place-card h3,
@@ -190,4 +191,18 @@ main h1 {
     color: red;
     font-weight: bold;
     margin-top: 10px;
+}
+
+.view-link {
+    color: #ffcc00;
+    text-decoration: underline;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 10px;
+    transition: color 0.3, text-shadow 0.3s;
+}
+
+.view-link:hover {
+    color: #fff;
+    text-shadow: 0 0 5px #ffcc00;
 }
