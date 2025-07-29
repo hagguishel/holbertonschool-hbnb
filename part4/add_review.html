@@ -6,39 +6,42 @@
     <title>Add Review</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="images/icon.png" type="image/png">
+
 </head>
 <body>
-  <header>
-        <img src="images/logo.png" alt="HBnB Evolution Logo" class="logo">
-         <nav>
-            <a href="login.html" class="login-button nav-link">Login</a>
-            <a href="index.html" class="login-button nav-link">Index</a>
-            <a href="place.html" class="login-button nav-link">Place</a>
-            <a href="add_review.html" class="login-button nav-link">Review</a>
+    <header>
+        <img src="images/logo.png" alt="App logo" class="logo"/>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="login.html" class="login-button">Login</a>
         </nav>
-  </header>
+    </header>
     <main>
-       <h2>Reviewing:</h2><p id="place-name"><strong></strong></p>
-        <form id="review-form">
+        <h1>Review for: Beach House</h1>
+
+        <section class="add-review">
+            <form class="form">
+
             <h2>Add a Review</h2>
-            <input type="hidden" id="place-id" name="place_id" value="PLACE_ID_FROM_JS">
             <label for="review">Your Review:</label>
             <textarea id="review" name="review" required></textarea>
+
             <label for="rating">Rating:</label>
             <select id="rating" name="rating" required>
                 <option value="">Select a rating</option>
-                <option value="1">⚠️ 1 - Democracy in need of reinforcement</option>
-                <option value="2">🔄 2 - Needs more freedom allocation</option>
-                <option value="3">✅ 3 - Acceptable level of liberty</option>
-                <option value="4">🫡 4 - A stronghold of democratic excellence</option>
-                <option value="5">🌍 5 - Supreme bastion of Super Earth values!</option>
+                <option value="5">★★★★★ - Excellent</option>
+                <option value="4">★★★★☆ - Very Good</option>
+                <option value="3">★★★☆☆ - Good</option>
+                <option value="2">★★☆☆☆ - Fair</option>
+                <option value="1">★☆☆☆☆ - Poor</option>
             </select>
             <button type="submit">Submit Review</button>
         </form>
+        </section>
     </main>
-    <script src="scripts.js"></script>
-     <footer>
-      © 2024 HBnB Evolution. All rights reserved.
+    <footer>
+        <p>All rights reserved.</p>
     </footer>
+    <script src="scripts.js"></script>
 </body>
 </html>

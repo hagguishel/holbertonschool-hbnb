@@ -126,23 +126,6 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-function checkAuthentication() {
-  const token = getCookie('token');
-  const loginLink = document.getElementById('login-link');
-  const addReviewSection = document.getElementById('add-review');
-  const placeId = getPlaceIdFromURL();
-
-  if (!token) {
-    if (loginLink) loginLink.style.display = 'block';
-    if (addReviewSection) addReviewSection.style.display = 'none';
-  } else {
-    if (loginLink) loginLink.style.display = 'none';
-    if (addReviewSection) addReviewSection.style.display = 'block';
-
-    fetchPlaceDetails(token, placeId);
-  }
-}
-
 async function fetchPlaceDetails(token, placeId) {
   try {
     const response = await fetch(`http://localhost:5000/api/v1/places/${placeId}`, {
@@ -179,6 +162,7 @@ async function fetchPlaces(token) {
     }
 
     const places = await response.json();
+    allPlaces = places;
     displayPlaces(places);
 
   } catch (error) {
@@ -194,12 +178,15 @@ function displayPlaces(places) {
     const placeCard = document.createElement('div');
     placeCard.className = 'place-card';
 
-    placeCard.innerHTML = `
-      <h2>${place.title}</h2>
-      <p>${place.description || 'No description available.'}</p>
-      <p><strong>Coordinates:</strong> ${place.latitude}, ${place.longitude}</p>
-      <p><strong>Price:</strong> ${place.price} €</p>
-    `;
+  placeCard.innerHTML = `
+  <h2>${place.title}</h2>
+  <p>${place.description || 'No description available.'}</p>
+  <p><strong>Coordinates:</strong> ${place.latitude}, ${place.longitude}</p>
+  <p><strong>Price:</strong> ${place.price} €</p>
+  <a href="place.html?id=${place.id}" class="details-button">View Details</a>
+`;
+
+
 
   placesList.appendChild(placeCard);
   });
@@ -228,4 +215,24 @@ function displayPlaceDetails(place) {
       }
     </ul>
   `;
+}
+function checkAuthentication() {
+  const token = getCookie('token');
+  const loginLink = document.getElementById('login-link');
+  const addReviewSection = document.getElementById('add-review');
+  const placeId = getPlaceIdFromURL();
+
+  if (!token) {
+    if (loginLink) loginLink.style.display = 'block';
+    if (addReviewSection) addReviewSection.style.display = 'none';
+  } else {
+    if (loginLink) loginLink.style.display = 'none';
+    if (addReviewSection) addReviewSection.style.display = 'block';
+
+    if (placeId) {
+      fetchPlaceDetails(token, placeId);
+    } else {
+      console.warn('No place ID found in URL');
+    }
+  }
 }
