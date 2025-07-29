@@ -20,7 +20,14 @@ from app.api.v1.protected import api as protected_ns
 def create_app(config_class=config.DevelopmentConfig):
     # Création de l'application
     app = Flask(__name__)
-    CORS(app, origins=["http://localhost:5500"])
+    CORS(app,
+     resources={r"/api/*": {"origins": "http://localhost:5500"}},
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Authorization", "Content-Type"])
+
+
+
 
     app.config.from_object(config_class)
 

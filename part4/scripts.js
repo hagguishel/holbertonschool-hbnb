@@ -2,6 +2,8 @@
   This is a SAMPLE FILE to get you started.
   Please, follow the project instructions to complete the tasks.
 */
+
+const API_BASE_URL = 'http://localhost:5000/api/v1';
 let allPlaces = []; //stockage des places récupérées pour le filtrage
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Email:', email);
       console.log('Password:', password);
 
-      fetch('http://localhost:5000/api/v1/auth/login', {
+      fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-type': 'application/json'
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.cookie = `token=${data.access_token}; path=/`;
 
           //user going to index.html
-          window.location.href = 'index.html';
+          window.location.href = '/index.html';
         })
         .catch(error => {
           console.error('Error during login:', error);
@@ -88,7 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/v1/places/${placeId}/reviews`, {
+        const response = await fetch(`${API_BASE_URL}/places/${placeId}/reviews`, {
+
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -128,7 +131,8 @@ function getCookie(name) {
 
 async function fetchPlaceDetails(token, placeId) {
   try {
-    const response = await fetch(`http://localhost:5000/api/v1/places/${placeId}`, {
+    const response = await fetch(`${API_BASE_URL}/places/${placeId}`, {
+
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -149,7 +153,8 @@ async function fetchPlaceDetails(token, placeId) {
 
 async function fetchPlaces(token) {
   try {
-    const response = await fetch('http://localhost:5000/api/v1/places', {
+    const response = await fetch(`${API_BASE_URL}/places`, {
+
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -183,7 +188,7 @@ function displayPlaces(places) {
   <p>${place.description || 'No description available.'}</p>
   <p><strong>Coordinates:</strong> ${place.latitude}, ${place.longitude}</p>
   <p><strong>Price:</strong> ${place.price} €</p>
-  <a href="place.html?id=${place.id}" class="details-button">View Details</a>
+  <a href="/place.html?id=${place.id}" class="details-button">View Details</a>
 `;
 
 
@@ -232,7 +237,7 @@ function checkAuthentication() {
     if (placeId) {
       fetchPlaceDetails(token, placeId);
     } else {
-      console.warn('No place ID found in URL');
+      fetchPlaces(token);
     }
   }
 }

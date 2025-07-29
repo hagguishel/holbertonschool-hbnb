@@ -52,6 +52,9 @@ class PlaceList(Resource):
         places = facade.get_all_places()
         return [place.to_dict_list() for place in places], 200
 
+    def option(self):
+        return {}, 200
+
 @api.route('/<place_id>')
 class PlaceResource(Resource):
     @api.response(200, 'Place details retrieved successfully')
@@ -86,7 +89,7 @@ class PlaceResource(Resource):
             return place.to_dict(), 200
         except Exception as e:
             return {'error': str(e).strip("'")}, 400
-    
+
     @api.response(200, 'Place deleted successfully')
     @api.response(404, 'Place not found')
     @api.response(401, 'Unauthorized')
@@ -118,16 +121,16 @@ class PlaceAmenities(Resource):
         amenities_data = api.payload
         if not amenities_data or len(amenities_data) == 0:
             return {'error': 'Invalid input data'}, 400
-        
+
         place = facade.get_place(place_id)
         if not place:
             return {'error': 'Place not found'}, 404
-        
+
         for amenity in amenities_data:
             a = facade.get_amenity(amenity['id'])
             if not a:
                 return {'error': 'Invalid input data'}, 400
-        
+
         for amenity in amenities_data:
             place.add_amenity(amenity)
         return {'message': 'Amenities added successfully'}, 200
@@ -142,4 +145,4 @@ class PlaceReviewList(Resource):
         if not place:
             return {'error': 'Place not found'}, 404
         return [review.to_dict() for review in place.reviews], 200
-    
+
